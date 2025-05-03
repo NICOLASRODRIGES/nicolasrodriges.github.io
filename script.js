@@ -35,7 +35,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
             id: fileId,
             name: filenameInput.value,
             originalName: fileInput.files[0].name,
-            url: fileUrl,
+            fileObject: fileInput.files[0],
             size: fileInput.files[0].size,
             date: new Date().toLocaleString()
         });
@@ -82,13 +82,15 @@ function downloadFile(fileId) {
     const file = files.find(f => f.id === fileId);
     if (!file) return;
 
-    // Создаем ссылку для скачивания
+    // Создаем ссылку на Blob для скачивания
+    const blob = new Blob([file.fileObject], { type: file.fileObject.type });
     const link = document.createElement('a');
-    link.href = file.url;
+    link.href = URL.createObjectURL(blob);
     link.download = file.originalName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
 }
 
 // Функция форматирования размера файла
