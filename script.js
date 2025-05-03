@@ -70,11 +70,25 @@ function updateFilesList() {
             <p>Оригинальное имя: ${file.originalName}</p>
             <p>Размер: ${formatFileSize(file.size)}</p>
             <p>Дата загрузки: ${file.date}</p>
-            <a href="${file.url}" class="file-link" target="_blank">Скачать</a>
+            <button onclick="downloadFile('${file.id}')" class="download-button">Скачать</button>
         `;
         
         filesList.appendChild(fileCard);
     });
+}
+
+// Функция для скачивания файла
+function downloadFile(fileId) {
+    const file = files.find(f => f.id === fileId);
+    if (!file) return;
+
+    // Создаем ссылку для скачивания
+    const link = document.createElement('a');
+    link.href = file.url;
+    link.download = file.originalName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // Функция форматирования размера файла
