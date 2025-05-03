@@ -28,6 +28,22 @@
             <p>Мы - команда профессионалов, готовых помочь вам в реализации ваших идей.</p>
         </section>
 
+        <section id="upload" class="upload">
+            <h2>Загрузка файлов</h2>
+            <form id="uploadForm" class="upload-form">
+                <div class="form-group">
+                    <label for="file">Выберите ZIP-файл:</label>
+                    <input type="file" id="file" name="file" accept=".zip" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Ваш email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <button type="submit" class="upload-button">Отправить</button>
+            </form>
+            <div id="uploadStatus" class="upload-status"></div>
+        </section>
+
         <section id="contact" class="contact">
             <h2>Контакты</h2>
             <p>Email: example@email.com</p>
@@ -38,5 +54,6 @@
     <footer>
         <p>&copy; 2024 Мой Сайт. Все права защищены.</p>
     </footer>
+    <script src="script.js"></script>
 </body>
 </html> 
