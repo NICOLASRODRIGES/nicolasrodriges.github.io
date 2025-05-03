@@ -4,55 +4,33 @@ let files = [];
 // Обработка загрузки файла
 document.getElementById('uploadForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
     const fileInput = document.getElementById('file');
-    const filenameInput = document.getElementById('filename');
-    const statusDiv = document.getElementById('uploadStatus');
-    
+    const resultDiv = document.getElementById('result');
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
-    formData.append('filename', filenameInput.value);
-    
+    resultDiv.textContent = 'Загрузка...';
     try {
-        statusDiv.textContent = 'Загрузка...';
-        statusDiv.className = 'upload-status';
-        
-        // В реальном приложении здесь будет запрос к серверу
-        // const response = await fetch('/upload', {
-        //     method: 'POST',
-        //     body: formData
-        // });
-        
-        // Имитация загрузки
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Создаем уникальный URL для файла
-        const fileId = Date.now().toString(36) + Math.random().toString(36).substr(2);
-        const fileUrl = `/files/${fileId}`;
-        
-        // Добавляем файл в хранилище
-        files.push({
-            id: fileId,
-            name: filenameInput.value,
-            originalName: fileInput.files[0].name,
-            fileObject: fileInput.files[0],
-            size: fileInput.files[0].size,
-            date: new Date().toLocaleString()
+        const response = await fetch('http://localhost:5000/upload', {
+            method: 'POST',
+            body: formData
         });
-        
-        // Обновляем список файлов
-        updateFilesList();
-        
-        statusDiv.textContent = 'Файл успешно загружен!';
-        statusDiv.className = 'upload-status success';
-        
-        // Очищаем форму
-        fileInput.value = '';
-        filenameInput.value = '';
-        
-    } catch (error) {
-        statusDiv.textContent = error.message || 'Ошибка при загрузке файла';
-        statusDiv.className = 'upload-status error';
+        const data = await response.json();
+        if (response.ok) {
+            // Добавляем файл в список
+            files.push({
+                name: data.filename,
+                originalName: data.filename,
+                size: data.size,
+                date: new Date(data.date).toLocaleString(),
+                url: `http://localhost:5000${data.url}`
+            });
+            updateFilesList();
+            resultDiv.textContent = 'Файл успешно загружен!';
+        } else {
+            resultDiv.textContent = data.error || 'Ошибка загрузки';
+        }
+    } catch (err) {
+        resultDiv.textContent = 'Ошибка соединения с сервером';
     }
 });
 
@@ -70,27 +48,11 @@ function updateFilesList() {
             <p>Оригинальное имя: ${file.originalName}</p>
             <p>Размер: ${formatFileSize(file.size)}</p>
             <p>Дата загрузки: ${file.date}</p>
-            <button onclick="downloadFile('${file.id}')" class="download-button">Скачать</button>
+            <a href="${file.url}" class="file-link" target="_blank">Скачать</a>
         `;
         
         filesList.appendChild(fileCard);
     });
-}
-
-// Функция для скачивания файла
-function downloadFile(fileId) {
-    const file = files.find(f => f.id === fileId);
-    if (!file) return;
-
-    // Создаем ссылку на Blob для скачивания
-    const blob = new Blob([file.fileObject], { type: file.fileObject.type });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = file.originalName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
 }
 
 // Функция форматирования размера файла
