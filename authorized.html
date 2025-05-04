@@ -125,6 +125,25 @@
         .remove-btn:hover {
             background: #a71d2a;
         }
+        .auth-users {
+            background: #223344;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        .auth-users h3 {
+            margin-top: 0;
+        }
+        .auth-users ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .auth-users li {
+            margin-bottom: 8px;
+            color: #28a745;
+        }
     </style>
 </head>
 <body>
@@ -149,6 +168,10 @@
     <div class="users-list">
         <h2>Все пользователи</h2>
         <div id="users"></div>
+    </div>
+    <div class="auth-users">
+        <h3>Авторизованные пользователи</h3>
+        <ul id="authUsers"></ul>
     </div>
 
     <script>
@@ -195,6 +218,7 @@
                         successDiv.textContent = 'Пользователь успешно авторизован!';
                         successDiv.style.display = 'block';
                         loadUsers();
+                        loadAuthUsers();
                     } else {
                         throw new Error('Ошибка при обновлении данных');
                     }
@@ -227,6 +251,7 @@
                 .then(response => {
                     if (response && response.ok) {
                         loadUsers();
+                        loadAuthUsers();
                     }
                 });
         }
@@ -261,7 +286,30 @@
                 });
         }
 
+        function loadAuthUsers() {
+            const list = document.getElementById('authUsers');
+            list.innerHTML = '';
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const users = data.record.users || {};
+                    Object.keys(users).forEach(username => {
+                        if (users[username].authorized) {
+                            const li = document.createElement('li');
+                            li.textContent = username;
+                            list.appendChild(li);
+                        }
+                    });
+                    if (!list.hasChildNodes()) {
+                        list.innerHTML = '<li style="color:#dc3545">Нет авторизованных пользователей</li>';
+                    }
+                });
+        }
+
         loadUsers();
+        loadAuthUsers();
     </script>
 </body>
 </html> 
