@@ -43,6 +43,7 @@
             display: flex;
             align-items: center;
             gap: 0.5em;
+            justify-content: space-between;
         }
         .user-list li:last-child { margin-bottom: 0; }
         .add-user-btn {
@@ -61,6 +62,20 @@
         }
         .add-user-btn:hover {
             background: var(--color-accent-hover);
+        }
+        .delete-user-btn {
+            background: none;
+            border: none;
+            color: var(--color-accent);
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 0 0.3em;
+            border-radius: 50%;
+            transition: background 0.15s;
+        }
+        .delete-user-btn:hover {
+            background: var(--color-bg-card);
+            color: #ff4d4f;
         }
         input[type="text"] {
             width: 100%;
@@ -168,6 +183,18 @@
                     hasAuth = true;
                     const li = document.createElement('li');
                     li.textContent = username;
+                    // Кнопка удаления
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'delete-user-btn';
+                    delBtn.title = 'Удалить пользователя';
+                    delBtn.innerHTML = '🗑️';
+                    delBtn.onclick = async (e) => {
+                        e.stopPropagation();
+                        if (confirm('Удалить пользователя "' + username + '"?')) {
+                            await deleteUser(username);
+                        }
+                    };
+                    li.appendChild(delBtn);
                     userList.appendChild(li);
                 }
             }
@@ -232,6 +259,28 @@
             } catch (error) {
                 errorDiv.textContent = 'Произошла ошибка: ' + error.message;
                 errorDiv.style.color = 'red';
+            }
+        }
+        async function deleteUser(username) {
+            // Получаем свежие данные
+            const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
+            const data = await response.json();
+            if (data.record.users && data.record.users[username]) {
+                delete data.record.users[username];
+                // Сохраняем изменения (PUT без /latest)
+                const updateResponse = await fetch('https://api.jsonbin.io/v3/b/6816ae838a456b7966972667', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify(data.record)
+                });
+                if (updateResponse.ok) {
+                    loadUsers();
+                } else {
+                    alert('Ошибка при удалении пользователя');
+                }
             }
         }
     </script>
