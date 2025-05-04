@@ -103,15 +103,20 @@
     </div>
 
     <script>
+        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
+        const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
+
         const params = new URLSearchParams(window.location.search);
         const username = params.get('username');
         document.getElementById('user-title').textContent = 'Данные пользователя: ' + username;
         
-        // Загружаем данные пользователя из JSON файла
-        fetch('data/users.json')
+        // Загружаем данные пользователя из jsonbin.io
+        fetch(API_URL, {
+            headers: { 'X-Master-Key': API_KEY }
+        })
             .then(response => response.json())
             .then(data => {
-                const user = data.users[username];
+                const user = data.record.users[username];
                 const statusDiv = document.getElementById('user-status');
                 
                 if (user && user.authorized) {

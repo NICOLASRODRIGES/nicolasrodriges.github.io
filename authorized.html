@@ -97,6 +97,9 @@
     </div>
 
     <script>
+        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
+        const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
+
         function authorizeUser() {
             const username = document.getElementById('username').value.trim();
             const errorDiv = document.getElementById('error');
@@ -111,27 +114,30 @@
                 return;
             }
 
-            // Загружаем текущие данные
-            fetch('data/users.json')
+            // Получаем текущие данные
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
                 .then(response => response.json())
                 .then(data => {
-                    if (!data.users) {
-                        data.users = {};
+                    if (!data.record.users) {
+                        data.record.users = {};
                     }
                     
-                    if (!data.users[username]) {
-                        data.users[username] = {};
+                    if (!data.record.users[username]) {
+                        data.record.users[username] = {};
                     }
                     
-                    data.users[username].authorized = true;
+                    data.record.users[username].authorized = true;
 
-                    // Сохраняем обновленные данные
-                    return fetch('data/users.json', {
+                    // Отправляем обновленные данные
+                    return fetch(API_URL, {
                         method: 'PUT',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': API_KEY
                         },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify(data.record)
                     });
                 })
                 .then(response => {

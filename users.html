@@ -71,12 +71,17 @@
     </div>
 
     <script>
-        // Загружаем данные пользователей из JSON файла
-        fetch('data/users.json')
+                                                    const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
+        const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
+
+        // Загружаем данные пользователей из jsonbin.io
+        fetch(API_URL, {
+            headers: { 'X-Master-Key': API_KEY }
+        })
             .then(response => response.json())
             .then(data => {
                 const userList = document.getElementById('user-list');
-                for (const username in data.users) {
+                for (const username in data.record.users) {
                     const link = document.createElement('a');
                     link.href = `user.html?username=${encodeURIComponent(username)}`;
                     link.className = 'user-link';

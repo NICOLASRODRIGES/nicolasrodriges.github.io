@@ -90,15 +90,20 @@
     <div id="error" class="error"></div>
 
     <script>
+        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
+        const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
+
         function loadZips() {
             const zipsList = document.getElementById('zipsList');
             const errorDiv = document.getElementById('error');
             
-            // Загружаем данные пользователей
-            fetch('data/users.json')
+            // Загружаем данные пользователей из jsonbin.io
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
                 .then(response => response.json())
                 .then(data => {
-                    if (!data.users) {
+                    if (!data.record.users) {
                         throw new Error('Нет данных о пользователях');
                     }
                     
@@ -106,7 +111,7 @@
                     zipsList.innerHTML = '';
                     
                     // Добавляем архивы для каждого пользователя
-                    Object.entries(data.users).forEach(([username, userData]) => {
+                    Object.entries(data.record.users).forEach(([username, userData]) => {
                         if (userData.zip_url) {
                             const zipItem = document.createElement('div');
                             zipItem.className = 'zip-item';
