@@ -125,7 +125,7 @@
                 }
                 data.record.users[username].authorized = true;
                 // Отправляем обновленные данные
-                const updateResponse = await fetch(API_URL, {
+                const updateResponse = await fetch('https://api.jsonbin.io/v3/b/6816ae838a456b7966972667', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
