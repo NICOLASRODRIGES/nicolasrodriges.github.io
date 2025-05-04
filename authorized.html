@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Авторизация</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .auth-form {
+            background: var(--color-bg-card);
+            padding: 2rem;
+            border-radius: 10px;
+            margin: 3rem auto 0 auto;
+            box-shadow: 0 2px 12px var(--color-shadow);
+            max-width: 400px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            background: var(--color-bg-card-alt);
+            color: var(--color-text);
+            font-size: 1.1em;
+            transition: border 0.2s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border: 1.5px solid var(--color-accent);
+        }
+        button {
+            background: var(--color-accent);
+            color: #fff;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: var(--color-accent-hover);
+        }
+        .error {
+            color: var(--color-accent);
+            margin-top: 1rem;
+            font-weight: 500;
+            text-align: center;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 3.5rem;
+            color: var(--color-link-hover);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        @media (max-width: 600px) {
+            .auth-form { padding: 1rem; margin-top: 2rem; }
+            h1 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle">
+        <input type="checkbox" id="theme-switch">
+        <label for="theme-switch" class="theme-switch"></label>
+        <span id="theme-label"></span>
+    </div>
+    <h1>Авторизация пользователя</h1>
+    <div class="auth-form">
+        <input type="text" id="username" placeholder="Введите имя пользователя">
+        <button onclick="authorizeUser()">Авторизовать</button>
+        <div id="error" class="error"></div>
+    </div>
+
+    <script>
+        // Theme toggle logic
+        const themeSwitch = document.getElementById('theme-switch');
+        const themeLabel = document.getElementById('theme-label');
+        function setTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                themeSwitch.checked = true;
+                themeLabel.textContent = 'Светлая';
+            } else {
+                document.body.classList.remove('light-theme');
+                themeSwitch.checked = false;
+                themeLabel.textContent = 'Тёмная';
+            }
+        }
+        themeSwitch.addEventListener('change', () => {
+            const theme = themeSwitch.checked ? 'light' : 'dark';
+            setTheme(theme);
+            localStorage.setItem('theme', theme);
+        });
+        // Инициализация темы
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+        // --- Auth logic ---
+        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
+        const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
+
+        async function authorizeUser() {
+            const username = document.getElementById('username').value.trim();
+            const errorDiv = document.getElementById('error');
+            errorDiv.style.color = '';
+            if (!username) {
+                errorDiv.textContent = 'Пожалуйста, введите имя пользователя';
+                return;
+            }
+            try {
+                // Получаем текущие данные
+                const response = await fetch(API_URL, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await response.json();
+                // Обновляем данные пользователя
+                if (!data.record.users) {
+                    data.record.users = {};
+                }
+                if (!data.record.users[username]) {
+                    data.record.users[username] = {};
+                }
+                data.record.users[username].authorized = true;
+                // Отправляем обновленные данные
+                const updateResponse = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify(data.record)
+                });
+                if (updateResponse.ok) {
+                    errorDiv.textContent = 'Пользователь успешно авторизован!';
+                    errorDiv.style.color = 'var(--color-accent)';
+                } else {
+                    throw new Error('Ошибка при обновлении данных');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Произошла ошибка: ' + error.message;
+                errorDiv.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html> 

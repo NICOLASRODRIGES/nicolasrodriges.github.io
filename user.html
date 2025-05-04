@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Данные пользователя</title>
+    <link rel="stylesheet" href="style.css">
     <style>
         body {
             font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
@@ -16,28 +17,28 @@
             text-align: center;
             font-size: 2.1rem;
             font-weight: 700;
-            color: #7fa7ff;
+            color: var(--color-link-hover);
             letter-spacing: 1px;
         }
         .data-table {
             margin: 2em auto;
             border-collapse: collapse;
-            background: #23272f;
+            background: var(--color-bg-card);
             border-radius: 10px;
             overflow: hidden;
             min-width: 340px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+            box-shadow: 0 2px 12px var(--color-shadow);
         }
         .data-table td {
-            border: 1px solid #333a44;
+            border: 1px solid var(--color-border);
             padding: 0.7em 1.2em;
-            color: #f3f3f3;
+            color: var(--color-text);
         }
         .data-table tr:nth-child(even) {
-            background: #202226;
+            background: var(--color-bg-card-alt);
         }
         .data-table tr:nth-child(odd) {
-            background: #23272f;
+            background: var(--color-bg-card);
         }
         .download {
             margin: 2em auto;
@@ -45,18 +46,18 @@
         }
         .download a {
             display: inline-block;
-            background: #3b82f6;
+            background: var(--color-accent);
             color: #fff;
             padding: 0.8em 1.5em;
             border-radius: 6px;
             text-decoration: none;
             font-weight: 500;
             font-size: 1.1em;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+            box-shadow: 0 2px 8px var(--color-shadow);
             transition: background 0.2s;
         }
         .download a:hover {
-            background: #2563eb;
+            background: var(--color-accent-hover);
         }
         @media (max-width: 600px) {
             h1 { font-size: 1.3rem; }
@@ -65,10 +66,38 @@
     </style>
 </head>
 <body>
+    <div class="theme-toggle">
+        <input type="checkbox" id="theme-switch">
+        <label for="theme-switch" class="theme-switch"></label>
+        <span id="theme-label"></span>
+    </div>
     <h1 id="user-title"></h1>
     <table class="data-table" id="data-table"></table>
     <div class="download" id="download"></div>
     <script>
+        // Theme toggle logic
+        const themeSwitch = document.getElementById('theme-switch');
+        const themeLabel = document.getElementById('theme-label');
+        function setTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                themeSwitch.checked = true;
+                themeLabel.textContent = 'Светлая';
+            } else {
+                document.body.classList.remove('light-theme');
+                themeSwitch.checked = false;
+                themeLabel.textContent = 'Тёмная';
+            }
+        }
+        themeSwitch.addEventListener('change', () => {
+            const theme = themeSwitch.checked ? 'light' : 'dark';
+            setTheme(theme);
+            localStorage.setItem('theme', theme);
+        });
+        // Инициализация темы
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+        // --- User logic ---
         const params = new URLSearchParams(window.location.search);
         const username = params.get('username');
         document.getElementById('user-title').textContent = 'Данные пользователя: ' + username;
