@@ -81,24 +81,18 @@
         .download-btn:hover {
             background: #218838;
         }
-        .auth-users {
-            background: #223344;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-top: 30px;
+        .remove-auth-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+            margin-left: 10px;
         }
-        .auth-users h3 {
-            margin-top: 0;
-        }
-        .auth-users ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .auth-users li {
-            margin-bottom: 8px;
-            color: #28a745;
+        .remove-auth-btn:hover {
+            background: #c82333;
         }
     </style>
 </head>
@@ -128,10 +122,6 @@
         </table>
         <div id="downloadLink" style="margin-top: 20px;"></div>
     </div>
-    <div class="auth-users">
-        <h3>Авторизованные пользователи</h3>
-        <ul id="authUsers"></ul>
-    </div>
 
     <script>
         const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
@@ -142,6 +132,32 @@
             const regex = new RegExp('[\?&]' + name + '=([^&#]*)');
             const results = regex.exec(location.search);
             return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        function removeAuthorization(username) {
+            if (!confirm(`Снять авторизацию с пользователя ${username}?`)) return;
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.record.users && data.record.users[username]) {
+                        data.record.users[username].authorized = false;
+                        return fetch(API_URL, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Master-Key': API_KEY
+                            },
+                            body: JSON.stringify(data.record)
+                        });
+                    }
+                })
+                .then(response => {
+                    if (response && response.ok) {
+                        location.reload();
+                    }
+                });
         }
 
         const username = getUrlParameter('username');
@@ -159,6 +175,18 @@
                         statusDiv.textContent = user.authorized ? 'Авторизован' : 'Не авторизован';
                         statusDiv.className = `status ${user.authorized ? 'authorized' : 'unauthorized'}`;
 
+                        if (user.authorized) {
+                            const removeBtn = document.createElement('a');
+                            removeBtn.href = '#';
+                            removeBtn.className = 'remove-auth-btn';
+                            removeBtn.textContent = 'Снять авторизацию';
+                            removeBtn.onclick = (e) => {
+                                e.preventDefault();
+                                removeAuthorization(username);
+                            };
+                            statusDiv.appendChild(removeBtn);
+                        }
+
                         const tbody = document.getElementById('userData');
                         for (const [key, value] of Object.entries(user)) {
                             if (key !== 'authorized') {
@@ -174,20 +202,6 @@
                         }
                     } else {
                         document.getElementById('status').textContent = 'Пользователь не найден';
-                    }
-                    // авторизованные
-                    const users = data.record.users || {};
-                    const list = document.getElementById('authUsers');
-                    list.innerHTML = '';
-                    Object.keys(users).forEach(username => {
-                        if (users[username].authorized) {
-                            const li = document.createElement('li');
-                            li.textContent = username;
-                            list.appendChild(li);
-                        }
-                    });
-                    if (!list.hasChildNodes()) {
-                        list.innerHTML = '<li style="color:#dc3545">Нет авторизованных пользователей</li>';
                     }
                 })
                 .catch(error => {

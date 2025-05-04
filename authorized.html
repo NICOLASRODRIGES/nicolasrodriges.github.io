@@ -143,6 +143,21 @@
         .auth-users li {
             margin-bottom: 8px;
             color: #28a745;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-auth-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .remove-auth-btn:hover {
+            background: #c82333;
         }
     </style>
 </head>
@@ -299,6 +314,11 @@
                         if (users[username].authorized) {
                             const li = document.createElement('li');
                             li.textContent = username;
+                            const removeBtn = document.createElement('button');
+                            removeBtn.className = 'remove-auth-btn';
+                            removeBtn.textContent = 'Снять авторизацию';
+                            removeBtn.onclick = () => removeAuthorization(username);
+                            li.appendChild(removeBtn);
                             list.appendChild(li);
                         }
                     });
