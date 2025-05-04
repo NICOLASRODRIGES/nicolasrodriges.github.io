@@ -13,6 +13,55 @@
             box-shadow: 0 2px 12px var(--color-shadow);
             max-width: 400px;
         }
+        .user-list {
+            background: var(--color-bg-card);
+            box-shadow: 0 2px 12px var(--color-shadow);
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 3rem auto 0 auto;
+            padding: 2rem;
+        }
+        .user-list-title {
+            color: var(--color-link-hover);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+        .user-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.2rem 0;
+        }
+        .user-list li {
+            color: var(--color-text);
+            background: var(--color-bg-card-alt);
+            border-radius: 6px;
+            padding: 0.6em 1em;
+            margin-bottom: 0.5em;
+            font-size: 1.08em;
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
+        .user-list li:last-child { margin-bottom: 0; }
+        .add-user-btn {
+            display: block;
+            width: 100%;
+            background: var(--color-accent);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.8em 0;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 1.2em;
+            transition: background 0.2s;
+        }
+        .add-user-btn:hover {
+            background: var(--color-accent-hover);
+        }
         input[type="text"] {
             width: 100%;
             padding: 0.8rem;
@@ -57,7 +106,7 @@
             letter-spacing: 1px;
         }
         @media (max-width: 600px) {
-            .auth-form { padding: 1rem; margin-top: 2rem; }
+            .auth-form, .user-list { padding: 1rem; margin-top: 2rem; }
             h1 { font-size: 1.2rem; }
         }
     </style>
@@ -68,13 +117,18 @@
         <label for="theme-switch" class="theme-switch"></label>
         <span id="theme-label"></span>
     </div>
-    <h1>Авторизация пользователя</h1>
-    <div class="auth-form">
+    <h1>Авторизация пользователей</h1>
+    <div class="user-list" id="user-list-block">
+        <div class="user-list-title">Авторизованные пользователи</div>
+        <ul id="user-list"></ul>
+        <button class="add-user-btn" onclick="showAddUserForm()">Добавить пользователя</button>
+    </div>
+    <div class="auth-form" id="auth-form-block" style="display:none;">
         <input type="text" id="username" placeholder="Введите имя пользователя">
         <button onclick="authorizeUser()">Авторизовать</button>
+        <button onclick="hideAddUserForm()" style="background:var(--color-bg-card-alt);color:var(--color-text);margin-left:1em;">Отмена</button>
         <div id="error" class="error"></div>
     </div>
-
     <script>
         // Theme toggle logic
         const themeSwitch = document.getElementById('theme-switch');
@@ -98,10 +152,42 @@
         // Инициализация темы
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
-        // --- Auth logic ---
+        // --- User list logic ---
         const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
         const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
-
+        let usersData = {};
+        async function loadUsers() {
+            const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
+            const data = await response.json();
+            usersData = data.record.users || {};
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = '';
+            let hasAuth = false;
+            for (let username in usersData) {
+                if (usersData[username].authorized) {
+                    hasAuth = true;
+                    const li = document.createElement('li');
+                    li.textContent = username;
+                    userList.appendChild(li);
+                }
+            }
+            if (!hasAuth) {
+                userList.innerHTML = '<li style="color:var(--color-text-alt);text-align:center;">Нет авторизованных пользователей</li>';
+            }
+        }
+        loadUsers();
+        // --- Add user form logic ---
+        function showAddUserForm() {
+            document.getElementById('auth-form-block').style.display = '';
+            document.getElementById('user-list-block').style.display = 'none';
+            document.getElementById('error').textContent = '';
+            document.getElementById('username').value = '';
+        }
+        function hideAddUserForm() {
+            document.getElementById('auth-form-block').style.display = 'none';
+            document.getElementById('user-list-block').style.display = '';
+        }
+        // --- Auth logic ---
         async function authorizeUser() {
             const username = document.getElementById('username').value.trim();
             const errorDiv = document.getElementById('error');
@@ -124,7 +210,7 @@
                     data.record.users[username] = {};
                 }
                 data.record.users[username].authorized = true;
-                // Отправляем обновленные данные
+                // Отправляем обновленные данные (PUT без /latest)
                 const updateResponse = await fetch('https://api.jsonbin.io/v3/b/6816ae838a456b7966972667', {
                     method: 'PUT',
                     headers: {
@@ -136,6 +222,10 @@
                 if (updateResponse.ok) {
                     errorDiv.textContent = 'Пользователь успешно авторизован!';
                     errorDiv.style.color = 'var(--color-accent)';
+                    setTimeout(() => {
+                        hideAddUserForm();
+                        loadUsers();
+                    }, 1200);
                 } else {
                     throw new Error('Ошибка при обновлении данных');
                 }
