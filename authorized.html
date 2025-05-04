@@ -40,6 +40,7 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
         input[type="text"] {
             width: 100%;
@@ -79,6 +80,51 @@
             border-radius: 4px;
             display: none;
         }
+        .users-list {
+            background: #223344;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .users-list h2 {
+            margin-top: 0;
+        }
+        .user-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #34495e;
+        }
+        .user-row:last-child {
+            border-bottom: none;
+        }
+        .user-status {
+            margin-right: 20px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        .user-status.authorized {
+            background: #28a745;
+            color: white;
+        }
+        .user-status.unauthorized {
+            background: #dc3545;
+            color: white;
+        }
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 7px 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .remove-btn:hover {
+            background: #a71d2a;
+        }
     </style>
 </head>
 <body>
@@ -100,6 +146,11 @@
         <div id="success" class="success"></div>
     </div>
 
+    <div class="users-list">
+        <h2>Все пользователи</h2>
+        <div id="users"></div>
+    </div>
+
     <script>
         const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
         const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
@@ -118,7 +169,6 @@
                 return;
             }
 
-            // Получаем текущие данные
             fetch(API_URL, {
                 headers: { 'X-Master-Key': API_KEY }
             })
@@ -127,14 +177,10 @@
                     if (!data.record.users) {
                         data.record.users = {};
                     }
-                    
                     if (!data.record.users[username]) {
                         data.record.users[username] = {};
                     }
-                    
                     data.record.users[username].authorized = true;
-
-                    // Отправляем обновленные данные
                     return fetch(API_URL, {
                         method: 'PUT',
                         headers: {
@@ -148,6 +194,7 @@
                     if (response.ok) {
                         successDiv.textContent = 'Пользователь успешно авторизован!';
                         successDiv.style.display = 'block';
+                        loadUsers();
                     } else {
                         throw new Error('Ошибка при обновлении данных');
                     }
@@ -157,6 +204,64 @@
                     errorDiv.style.display = 'block';
                 });
         }
+
+        function removeAuthorization(username) {
+            if (!confirm(`Снять авторизацию с пользователя ${username}?`)) return;
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.record.users && data.record.users[username]) {
+                        data.record.users[username].authorized = false;
+                        return fetch(API_URL, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Master-Key': API_KEY
+                            },
+                            body: JSON.stringify(data.record)
+                        });
+                    }
+                })
+                .then(response => {
+                    if (response && response.ok) {
+                        loadUsers();
+                    }
+                });
+        }
+
+        function loadUsers() {
+            const usersDiv = document.getElementById('users');
+            usersDiv.innerHTML = '';
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const users = data.record.users || {};
+                    Object.keys(users).forEach(username => {
+                        const user = users[username];
+                        const row = document.createElement('div');
+                        row.className = 'user-row';
+                        const status = document.createElement('span');
+                        status.className = 'user-status ' + (user.authorized ? 'authorized' : 'unauthorized');
+                        status.textContent = user.authorized ? 'Авторизован' : 'Не авторизован';
+                        row.appendChild(document.createTextNode(username));
+                        row.appendChild(status);
+                        if (user.authorized) {
+                            const btn = document.createElement('button');
+                            btn.className = 'remove-btn';
+                            btn.textContent = 'Снять авторизацию';
+                            btn.onclick = () => removeAuthorization(username);
+                            row.appendChild(btn);
+                        }
+                        usersDiv.appendChild(row);
+                    });
+                });
+        }
+
+        loadUsers();
     </script>
 </body>
 </html> 
