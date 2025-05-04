@@ -175,18 +175,6 @@
                         statusDiv.textContent = user.authorized ? 'Авторизован' : 'Не авторизован';
                         statusDiv.className = `status ${user.authorized ? 'authorized' : 'unauthorized'}`;
 
-                        if (user.authorized) {
-                            const removeBtn = document.createElement('a');
-                            removeBtn.href = '#';
-                            removeBtn.className = 'remove-auth-btn';
-                            removeBtn.textContent = 'Снять авторизацию';
-                            removeBtn.onclick = (e) => {
-                                e.preventDefault();
-                                removeAuthorization(username);
-                            };
-                            statusDiv.appendChild(removeBtn);
-                        }
-
                         const tbody = document.getElementById('userData');
                         for (const [key, value] of Object.entries(user)) {
                             if (key !== 'authorized') {
@@ -196,9 +184,25 @@
                             }
                         }
 
+                        const downloadBlock = document.getElementById('downloadBlock');
+                        downloadBlock.innerHTML = '';
                         if (user.zip_url) {
-                            const downloadDiv = document.getElementById('downloadLink');
-                            downloadDiv.innerHTML = `<a href="${user.zip_url}" class="download-btn">Скачать архив</a>`;
+                            const downloadBtn = document.createElement('a');
+                            downloadBtn.href = user.zip_url;
+                            downloadBtn.className = 'download-btn';
+                            downloadBtn.textContent = 'Скачать архив';
+                            downloadBlock.appendChild(downloadBtn);
+                        }
+                        if (user.authorized) {
+                            const removeBtn = document.createElement('a');
+                            removeBtn.href = '#';
+                            removeBtn.className = 'remove-auth-btn';
+                            removeBtn.textContent = 'Снять авторизацию';
+                            removeBtn.onclick = (e) => {
+                                e.preventDefault();
+                                removeAuthorization(username);
+                            };
+                            downloadBlock.appendChild(removeBtn);
                         }
                     } else {
                         document.getElementById('status').textContent = 'Пользователь не найден';
