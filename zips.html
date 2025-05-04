@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Архивы пользователей</title>
+    <style>
+        body { 
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: #e0e0e0;
+        }
+        .zips-list {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .zip-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .zip-item:last-child {
+            border-bottom: none;
+        }
+        .download-btn {
+            background: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .download-btn:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Архивы пользователей</h1>
+    </div>
+    
+    <div class="nav">
+        <a href="index.html">Главная</a>
+        <a href="users.html">Пользователи</a>
+        <a href="authorized.html">Авторизация</a>
+    </div>
+    
+    <div class="zips-list" id="zipsList">
+        <!-- Список архивов будет добавлен через JavaScript -->
+    </div>
+    
+    <div id="error" class="error"></div>
+
+    <script>
+        function loadZips() {
+            const zipsList = document.getElementById('zipsList');
+            const errorDiv = document.getElementById('error');
+            
+            // Загружаем данные пользователей
+            fetch('data/users.json')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.users) {
+                        throw new Error('Нет данных о пользователях');
+                    }
+                    
+                    // Очищаем список
+                    zipsList.innerHTML = '';
+                    
+                    // Добавляем архивы для каждого пользователя
+                    Object.entries(data.users).forEach(([username, userData]) => {
+                        if (userData.zip_url) {
+                            const zipItem = document.createElement('div');
+                            zipItem.className = 'zip-item';
+                            zipItem.innerHTML = `
+                                <span>Архив пользователя ${username}</span>
+                                <a href="${userData.zip_url}" class="download-btn" download>Скачать</a>
+                            `;
+                            zipsList.appendChild(zipItem);
+                        }
+                    });
+                    
+                    if (zipsList.children.length === 0) {
+                        zipsList.innerHTML = '<p>Нет доступных архивов</p>';
+                    }
+                })
+                .catch(error => {
+                    errorDiv.textContent = 'Ошибка при загрузке данных: ' + error.message;
+                    errorDiv.style.display = 'block';
+                });
+        }
+        
+        // Загружаем архивы при загрузке страницы
+        loadZips();
+    </script>
+</body>
+</html>

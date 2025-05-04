@@ -3,285 +3,149 @@
 <head>
     <meta charset="utf-8">
     <title>Авторизация</title>
-    <link rel="stylesheet" href="style.css">
     <style>
-        .auth-form {
-            background: var(--color-bg-card);
-            padding: 2rem;
-            border-radius: 10px;
-            margin: 3rem auto 0 auto;
-            box-shadow: 0 2px 12px var(--color-shadow);
-            max-width: 400px;
+        body { 
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
         }
-        .user-list {
-            background: var(--color-bg-card);
-            box-shadow: 0 2px 12px var(--color-shadow);
-            border-radius: 10px;
-            max-width: 400px;
-            margin: 3rem auto 0 auto;
-            padding: 2rem;
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
-        .user-list-title {
-            color: var(--color-link-hover);
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 1.2rem;
-            text-align: center;
-        }
-        .user-list ul {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 1.2rem 0;
-        }
-        .user-list li {
-            color: var(--color-text);
-            background: var(--color-bg-card-alt);
-            border-radius: 6px;
-            padding: 0.6em 1em;
-            margin-bottom: 0.5em;
-            font-size: 1.08em;
+        .nav {
             display: flex;
-            align-items: center;
-            gap: 0.5em;
-            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
         }
-        .user-list li:last-child { margin-bottom: 0; }
-        .add-user-btn {
-            display: block;
-            width: 100%;
-            background: var(--color-accent);
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 0.8em 0;
-            font-size: 1.1em;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 1.2em;
-            transition: background 0.2s;
+        .nav a {
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 5px;
+            transition: background 0.3s;
         }
-        .add-user-btn:hover {
-            background: var(--color-accent-hover);
+        .nav a:hover {
+            background: #e0e0e0;
         }
-        .delete-user-btn {
-            background: none;
-            border: none;
-            color: var(--color-accent);
-            font-size: 1.2em;
-            cursor: pointer;
-            padding: 0 0.3em;
-            border-radius: 50%;
-            transition: background 0.15s;
-        }
-        .delete-user-btn:hover {
-            background: var(--color-bg-card);
-            color: #ff4d4f;
+        .auth-form {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         input[type="text"] {
             width: 100%;
-            padding: 0.8rem;
-            margin: 1rem 0;
-            border: 1px solid var(--color-border);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
             border-radius: 4px;
-            background: var(--color-bg-card-alt);
-            color: var(--color-text);
-            font-size: 1.1em;
-            transition: border 0.2s;
-        }
-        input[type="text"]:focus {
-            outline: none;
-            border: 1.5px solid var(--color-accent);
+            box-sizing: border-box;
         }
         button {
-            background: var(--color-accent);
-            color: #fff;
-            padding: 0.8rem 2rem;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 1.1em;
-            font-weight: 500;
-            transition: background 0.2s;
+            transition: background 0.3s;
         }
         button:hover {
-            background: var(--color-accent-hover);
+            background: #218838;
         }
         .error {
-            color: var(--color-accent);
-            margin-top: 1rem;
-            font-weight: 500;
-            text-align: center;
+            color: #dc3545;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 4px;
+            display: none;
         }
-        h1 {
-            text-align: center;
-            margin-top: 3.5rem;
-            color: var(--color-link-hover);
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-        @media (max-width: 600px) {
-            .auth-form, .user-list { padding: 1rem; margin-top: 2rem; }
-            h1 { font-size: 1.2rem; }
+        .success {
+            color: #155724;
+            margin-top: 10px;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 4px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="theme-toggle">
-        <input type="checkbox" id="theme-switch">
-        <label for="theme-switch" class="theme-switch"></label>
-        <span id="theme-label"></span>
+    <div class="header">
+        <h1>Авторизация пользователя</h1>
     </div>
-    <h1>Авторизация пользователей</h1>
-    <div class="user-list" id="user-list-block">
-        <div class="user-list-title">Авторизованные пользователи</div>
-        <ul id="user-list"></ul>
-        <button class="add-user-btn" onclick="showAddUserForm()">Добавить пользователя</button>
+    
+    <div class="nav">
+        <a href="index.html">Главная</a>
+        <a href="users.html">Пользователи</a>
+        <a href="zips.html">Архивы</a>
     </div>
-    <div class="auth-form" id="auth-form-block" style="display:none;">
+    
+    <div class="auth-form">
         <input type="text" id="username" placeholder="Введите имя пользователя">
         <button onclick="authorizeUser()">Авторизовать</button>
-        <button onclick="hideAddUserForm()" style="background:var(--color-bg-card-alt);color:var(--color-text);margin-left:1em;">Отмена</button>
         <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
     </div>
+
     <script>
-        // Theme toggle logic
-        const themeSwitch = document.getElementById('theme-switch');
-        const themeLabel = document.getElementById('theme-label');
-        function setTheme(theme) {
-            if (theme === 'light') {
-                document.body.classList.add('light-theme');
-                themeSwitch.checked = true;
-                themeLabel.textContent = 'Светлая';
-            } else {
-                document.body.classList.remove('light-theme');
-                themeSwitch.checked = false;
-                themeLabel.textContent = 'Тёмная';
-            }
-        }
-        themeSwitch.addEventListener('change', () => {
-            const theme = themeSwitch.checked ? 'light' : 'dark';
-            setTheme(theme);
-            localStorage.setItem('theme', theme);
-        });
-        // Инициализация темы
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-        // --- User list logic ---
-        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
-        const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
-        let usersData = {};
-        async function loadUsers() {
-            const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
-            const data = await response.json();
-            usersData = data.record.users || {};
-            const userList = document.getElementById('user-list');
-            userList.innerHTML = '';
-            let hasAuth = false;
-            for (let username in usersData) {
-                if (usersData[username].authorized) {
-                    hasAuth = true;
-                    const li = document.createElement('li');
-                    li.textContent = username;
-                    // Кнопка удаления
-                    const delBtn = document.createElement('button');
-                    delBtn.className = 'delete-user-btn';
-                    delBtn.title = 'Удалить пользователя';
-                    delBtn.innerHTML = '🗑️';
-                    delBtn.onclick = async (e) => {
-                        e.stopPropagation();
-                        if (confirm('Удалить пользователя "' + username + '"?')) {
-                            await deleteUser(username);
-                        }
-                    };
-                    li.appendChild(delBtn);
-                    userList.appendChild(li);
-                }
-            }
-            if (!hasAuth) {
-                userList.innerHTML = '<li style="color:var(--color-text-alt);text-align:center;">Нет авторизованных пользователей</li>';
-            }
-        }
-        loadUsers();
-        // --- Add user form logic ---
-        function showAddUserForm() {
-            document.getElementById('auth-form-block').style.display = '';
-            document.getElementById('user-list-block').style.display = 'none';
-            document.getElementById('error').textContent = '';
-            document.getElementById('username').value = '';
-        }
-        function hideAddUserForm() {
-            document.getElementById('auth-form-block').style.display = 'none';
-            document.getElementById('user-list-block').style.display = '';
-        }
-        // --- Auth logic ---
-        async function authorizeUser() {
+        function authorizeUser() {
             const username = document.getElementById('username').value.trim();
             const errorDiv = document.getElementById('error');
-            errorDiv.style.color = '';
+            const successDiv = document.getElementById('success');
+            
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
             if (!username) {
                 errorDiv.textContent = 'Пожалуйста, введите имя пользователя';
+                errorDiv.style.display = 'block';
                 return;
             }
-            try {
-                // Получаем текущие данные
-                const response = await fetch(API_URL, {
-                    headers: { 'X-Master-Key': API_KEY }
+
+            // Загружаем текущие данные
+            fetch('data/users.json')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.users) {
+                        data.users = {};
+                    }
+                    
+                    if (!data.users[username]) {
+                        data.users[username] = {};
+                    }
+                    
+                    data.users[username].authorized = true;
+
+                    // Сохраняем обновленные данные
+                    return fetch('data/users.json', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                })
+                .then(response => {
+                    if (response.ok) {
+                        successDiv.textContent = 'Пользователь успешно авторизован!';
+                        successDiv.style.display = 'block';
+                    } else {
+                        throw new Error('Ошибка при обновлении данных');
+                    }
+                })
+                .catch(error => {
+                    errorDiv.textContent = 'Произошла ошибка: ' + error.message;
+                    errorDiv.style.display = 'block';
                 });
-                const data = await response.json();
-                // Обновляем данные пользователя
-                if (!data.record.users) {
-                    data.record.users = {};
-                }
-                if (!data.record.users[username]) {
-                    data.record.users[username] = {};
-                }
-                data.record.users[username].authorized = true;
-                // Отправляем обновленные данные (PUT без /latest)
-                const updateResponse = await fetch('https://api.jsonbin.io/v3/b/6816ae838a456b7966972667', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': API_KEY
-                    },
-                    body: JSON.stringify(data.record)
-                });
-                if (updateResponse.ok) {
-                    errorDiv.textContent = 'Пользователь успешно авторизован!';
-                    errorDiv.style.color = 'var(--color-accent)';
-                    setTimeout(() => {
-                        hideAddUserForm();
-                        loadUsers();
-                    }, 1200);
-                } else {
-                    throw new Error('Ошибка при обновлении данных');
-                }
-            } catch (error) {
-                errorDiv.textContent = 'Произошла ошибка: ' + error.message;
-                errorDiv.style.color = 'red';
-            }
-        }
-        async function deleteUser(username) {
-            // Получаем свежие данные
-            const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
-            const data = await response.json();
-            if (data.record.users && data.record.users[username]) {
-                delete data.record.users[username];
-                // Сохраняем изменения (PUT без /latest)
-                const updateResponse = await fetch('https://api.jsonbin.io/v3/b/6816ae838a456b7966972667', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': API_KEY
-                    },
-                    body: JSON.stringify(data.record)
-                });
-                if (updateResponse.ok) {
-                    loadUsers();
-                } else {
-                    alert('Ошибка при удалении пользователя');
-                }
-            }
         }
     </script>
 </body>

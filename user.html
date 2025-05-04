@@ -3,129 +3,150 @@
 <head>
     <meta charset="utf-8">
     <title>Данные пользователя</title>
-    <link rel="stylesheet" href="style.css">
     <style>
-        body {
-            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-            background: #181a1b;
-            color: #f3f3f3;
-            margin: 0;
-            min-height: 100vh;
+        body { 
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
         }
-        h1 {
-            margin: 2.5rem 0 1.5rem 0;
-            text-align: center;
-            font-size: 2.1rem;
-            font-weight: 700;
-            color: var(--color-link-hover);
-            letter-spacing: 1px;
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: #e0e0e0;
+        }
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .data-table {
-            margin: 2em auto;
+            width: 100%;
             border-collapse: collapse;
-            background: var(--color-bg-card);
-            border-radius: 10px;
-            overflow: hidden;
-            min-width: 340px;
-            box-shadow: 0 2px 12px var(--color-shadow);
+            margin: 20px 0;
         }
         .data-table td {
-            border: 1px solid var(--color-border);
-            padding: 0.7em 1.2em;
-            color: var(--color-text);
+            border: 1px solid #ddd;
+            padding: 8px;
         }
         .data-table tr:nth-child(even) {
-            background: var(--color-bg-card-alt);
+            background: #f8f9fa;
         }
-        .data-table tr:nth-child(odd) {
-            background: var(--color-bg-card);
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.authorized {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.unauthorized {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         .download {
-            margin: 2em auto;
-            text-align: center;
+            margin-top: 20px;
         }
         .download a {
             display: inline-block;
-            background: var(--color-accent);
-            color: #fff;
-            padding: 0.8em 1.5em;
-            border-radius: 6px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
             text-decoration: none;
-            font-weight: 500;
-            font-size: 1.1em;
-            box-shadow: 0 2px 8px var(--color-shadow);
-            transition: background 0.2s;
+            border-radius: 5px;
+            transition: background 0.3s;
         }
         .download a:hover {
-            background: var(--color-accent-hover);
-        }
-        @media (max-width: 600px) {
-            h1 { font-size: 1.3rem; }
-            .data-table { min-width: 180px; font-size: 0.95em; }
+            background: #0056b3;
         }
     </style>
 </head>
 <body>
-    <div class="theme-toggle">
-        <input type="checkbox" id="theme-switch">
-        <label for="theme-switch" class="theme-switch"></label>
-        <span id="theme-label"></span>
+    <div class="header">
+        <h1 id="user-title"></h1>
     </div>
-    <h1 id="user-title"></h1>
-    <table class="data-table" id="data-table"></table>
-    <div class="download" id="download"></div>
+    
+    <div class="nav">
+        <a href="index.html">Главная</a>
+        <a href="users.html">Пользователи</a>
+        <a href="authorized.html">Авторизация</a>
+        <a href="zips.html">Архивы</a>
+    </div>
+    
+    <div class="content">
+        <div class="status" id="user-status"></div>
+        <table class="data-table" id="data-table"></table>
+        <div class="download" id="download"></div>
+    </div>
+
     <script>
-        // Theme toggle logic
-        const themeSwitch = document.getElementById('theme-switch');
-        const themeLabel = document.getElementById('theme-label');
-        function setTheme(theme) {
-            if (theme === 'light') {
-                document.body.classList.add('light-theme');
-                themeSwitch.checked = true;
-                themeLabel.textContent = 'Светлая';
-            } else {
-                document.body.classList.remove('light-theme');
-                themeSwitch.checked = false;
-                themeLabel.textContent = 'Чорная';
-            }
-        }
-        themeSwitch.addEventListener('change', () => {
-            const theme = themeSwitch.checked ? 'light' : 'dark';
-            setTheme(theme);
-            localStorage.setItem('theme', theme);
-        });
-        // Инициализация темы
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-        // --- User logic ---
         const params = new URLSearchParams(window.location.search);
         const username = params.get('username');
         document.getElementById('user-title').textContent = 'Данные пользователя: ' + username;
-        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
-        const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
-        fetch(API_URL, {
-            headers: { 'X-Master-Key': API_KEY }
-        })
-        .then(r=>r.json())
-        .then(data=>{
-            let user = data.record.users[username];
-            let table = document.getElementById('data-table');
-            for (let k in user) {
-                if (k === 'zip_url') continue;
-                let tr = document.createElement('tr');
-                let td1 = document.createElement('td');
-                let td2 = document.createElement('td');
-                td1.textContent = k;
-                td2.textContent = user[k];
-                tr.appendChild(td1);
-                tr.appendChild(td2);
-                table.appendChild(tr);
-            }
-            if (user.zip_url) {
-                document.getElementById('download').innerHTML =
-                    `<a href="${user.zip_url}" download>Скачать ZIP</a>`;
-            }
-        });
+        
+        // Загружаем данные пользователя из JSON файла
+        fetch('data/users.json')
+            .then(response => response.json())
+            .then(data => {
+                const user = data.users[username];
+                const statusDiv = document.getElementById('user-status');
+                
+                if (user && user.authorized) {
+                    statusDiv.textContent = 'Пользователь авторизован';
+                    statusDiv.className = 'status authorized';
+                } else {
+                    statusDiv.textContent = 'Пользователь не авторизован';
+                    statusDiv.className = 'status unauthorized';
+                }
+                
+                const table = document.getElementById('data-table');
+                if (user) {
+                    for (const key in user) {
+                        if (key === 'zip_url' || key === 'authorized') continue;
+                        const tr = document.createElement('tr');
+                        const td1 = document.createElement('td');
+                        const td2 = document.createElement('td');
+                        td1.textContent = key;
+                        td2.textContent = user[key];
+                        tr.appendChild(td1);
+                        tr.appendChild(td2);
+                        table.appendChild(tr);
+                    }
+                }
+                
+                if (user && user.zip_url) {
+                    document.getElementById('download').innerHTML =
+                        `<a href="${user.zip_url}" download>Скачать ZIP</a>`;
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки данных:', error);
+                document.getElementById('user-status').textContent = 'Ошибка загрузки данных пользователя';
+                document.getElementById('user-status').className = 'status unauthorized';
+            });
     </script>
 </body>
 </html>
