@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Пользователи</title>
+    <style>
+        body { font-family: sans-serif; }
+        .user-list { margin: 2em; }
+        .user-link { display: block; margin: 0.5em 0; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <h1>Пользователи</h1>
+    <div class="user-list" id="user-list"></div>
+    <script>
+        const API_URL = 'https://api.jsonbin.io/v3/b/<ID_ТВОЕГО_БИНА>/latest';
+        const API_KEY = '<ТВОЙ_СЕКРЕТНЫЙ_КЛЮЧ>';
+        fetch(API_URL, {
+            headers: { 'X-Master-Key': API_KEY }
+        })
+        .then(r=>r.json())
+        .then(data=>{
+            let users = data.record.users;
+            let list = document.getElementById('user-list');
+            for (let username in users) {
+                let a = document.createElement('a');
+                a.href = 'user.html?username=' + encodeURIComponent(username);
+                a.textContent = username;
+                a.className = 'user-link';
+                list.appendChild(a);
+            }
+        });
+    </script>
+</body>
+</html>

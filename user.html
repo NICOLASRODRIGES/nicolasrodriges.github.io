@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Данные пользователя</title>
+    <style>
+        body { font-family: sans-serif; }
+        .data-table { margin: 2em; border-collapse: collapse; }
+        .data-table td { border: 1px solid #ccc; padding: 0.5em 1em; }
+        .data-table tr:nth-child(even) { background: #f9f9f9; }
+        .download { margin: 2em; }
+    </style>
+</head>
+<body>
+    <h1 id="user-title"></h1>
+    <table class="data-table" id="data-table"></table>
+    <div class="download" id="download"></div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const username = params.get('username');
+        document.getElementById('user-title').textContent = 'Данные пользователя: ' + username;
+        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
+        const API_KEY = '$2a$10$3ODUmftOdCIJqvLSFHLqLwePQV9ERhhvW1NFWDEEPoF5.F2RoT4vfC';
+        fetch(API_URL, {
+            headers: { 'X-Master-Key': API_KEY }
+        })
+        .then(r=>r.json())
+        .then(data=>{
+            let user = data.record.users[username];
+            let table = document.getElementById('data-table');
+            for (let k in user) {
+                if (k === 'zip_url') continue;
+                let tr = document.createElement('tr');
+                let td1 = document.createElement('td');
+                let td2 = document.createElement('td');
+                td1.textContent = k;
+                td2.textContent = user[k];
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                table.appendChild(tr);
+            }
+            if (user.zip_url) {
+                document.getElementById('download').innerHTML =
+                    `<a href="${user.zip_url}" download>Скачать ZIP</a>`;
+            }
+        });
+    </script>
+</body>
+</html>
