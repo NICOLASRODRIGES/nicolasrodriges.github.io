@@ -4,11 +4,64 @@
     <meta charset="utf-8">
     <title>Данные пользователя</title>
     <style>
-        body { font-family: sans-serif; }
-        .data-table { margin: 2em; border-collapse: collapse; }
-        .data-table td { border: 1px solid #ccc; padding: 0.5em 1em; }
-        .data-table tr:nth-child(even) { background: #f9f9f9; }
-        .download { margin: 2em; }
+        body {
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            background: #181a1b;
+            color: #f3f3f3;
+            margin: 0;
+            min-height: 100vh;
+        }
+        h1 {
+            margin: 2.5rem 0 1.5rem 0;
+            text-align: center;
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #7fa7ff;
+            letter-spacing: 1px;
+        }
+        .data-table {
+            margin: 2em auto;
+            border-collapse: collapse;
+            background: #23272f;
+            border-radius: 10px;
+            overflow: hidden;
+            min-width: 340px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+        }
+        .data-table td {
+            border: 1px solid #333a44;
+            padding: 0.7em 1.2em;
+            color: #f3f3f3;
+        }
+        .data-table tr:nth-child(even) {
+            background: #202226;
+        }
+        .data-table tr:nth-child(odd) {
+            background: #23272f;
+        }
+        .download {
+            margin: 2em auto;
+            text-align: center;
+        }
+        .download a {
+            display: inline-block;
+            background: #3b82f6;
+            color: #fff;
+            padding: 0.8em 1.5em;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+            transition: background 0.2s;
+        }
+        .download a:hover {
+            background: #2563eb;
+        }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.3rem; }
+            .data-table { min-width: 180px; font-size: 0.95em; }
+        }
     </style>
 </head>
 <body>
