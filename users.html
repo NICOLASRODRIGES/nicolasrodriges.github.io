@@ -2,14 +2,15 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Пользователи</title>
+    <title>Список пользователей</title>
     <style>
         body { 
             font-family: sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background: #f5f5f5;
+            background: #1a1a1a;
+            color: #ffffff;
         }
         .header {
             background: #2c3e50;
@@ -24,40 +25,55 @@
             margin-bottom: 20px;
         }
         .nav a {
-            color: #2c3e50;
+            color: #ffffff;
             text-decoration: none;
             padding: 10px 20px;
-            background: white;
+            background: #2c3e50;
             border-radius: 5px;
             transition: background 0.3s;
         }
         .nav a:hover {
-            background: #e0e0e0;
+            background: #34495e;
         }
-        .user-list {
-            background: white;
+        .content {
+            background: #2c3e50;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .user-link {
+        .user-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .user-list li {
+            margin-bottom: 10px;
+        }
+        .user-list a {
             display: block;
             padding: 10px;
-            margin: 5px 0;
-            background: #f8f9fa;
-            border-radius: 3px;
+            background: #34495e;
+            color: white;
             text-decoration: none;
-            color: #2c3e50;
+            border-radius: 4px;
             transition: background 0.3s;
         }
-        .user-link:hover {
-            background: #e9ecef;
+        .user-list a:hover {
+            background: #2c3e50;
+        }
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Пользователи</h1>
+        <h1>Список пользователей</h1>
     </div>
     
     <div class="nav">
@@ -66,33 +82,37 @@
         <a href="zips.html">Архивы</a>
     </div>
     
-    <div class="user-list" id="user-list">
-        <!-- Пользователи будут добавлены через JavaScript -->
+    <div class="content">
+        <ul id="userList" class="user-list"></ul>
+        <div id="error" class="error"></div>
     </div>
 
     <script>
-                                                    const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
+        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
         const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
 
-        // Загружаем данные пользователей из jsonbin.io
         fetch(API_URL, {
             headers: { 'X-Master-Key': API_KEY }
         })
             .then(response => response.json())
             .then(data => {
-                const userList = document.getElementById('user-list');
-                for (const username in data.record.users) {
-                    const link = document.createElement('a');
-                    link.href = `user.html?username=${encodeURIComponent(username)}`;
-                    link.className = 'user-link';
-                    link.textContent = username;
-                    userList.appendChild(link);
+                const userList = document.getElementById('userList');
+                const users = data.record.users || {};
+                
+                for (const username in users) {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = `user.html?username=${encodeURIComponent(username)}`;
+                    a.textContent = username;
+                    li.appendChild(a);
+                    userList.appendChild(li);
                 }
             })
             .catch(error => {
-                console.error('Ошибка загрузки данных:', error);
-                document.getElementById('user-list').innerHTML = 
-                    '<p style="color: red;">Ошибка загрузки списка пользователей</p>';
+                console.error('Error:', error);
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = 'Ошибка при загрузке списка пользователей';
+                errorDiv.style.display = 'block';
             });
     </script>
 </body>

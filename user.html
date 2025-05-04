@@ -9,7 +9,8 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background: #f5f5f5;
+            background: #1a1a1a;
+            color: #ffffff;
         }
         .header {
             background: #2c3e50;
@@ -24,69 +25,67 @@
             margin-bottom: 20px;
         }
         .nav a {
-            color: #2c3e50;
+            color: #ffffff;
             text-decoration: none;
             padding: 10px 20px;
-            background: white;
+            background: #2c3e50;
             border-radius: 5px;
             transition: background 0.3s;
         }
         .nav a:hover {
-            background: #e0e0e0;
+            background: #34495e;
         }
         .content {
-            background: white;
+            background: #2c3e50;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .authorized {
+            background: #28a745;
+            color: white;
+        }
+        .unauthorized {
+            background: #dc3545;
+            color: white;
+        }
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-        }
-        .data-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        .data-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        .status {
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .status.authorized {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status.unauthorized {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .download {
             margin-top: 20px;
         }
-        .download a {
+        .data-table th, .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #34495e;
+        }
+        .data-table th {
+            background: #34495e;
+            color: white;
+        }
+        .download-btn {
             display: inline-block;
             padding: 10px 20px;
-            background: #007bff;
+            background: #28a745;
             color: white;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 4px;
             transition: background 0.3s;
         }
-        .download a:hover {
-            background: #0056b3;
+        .download-btn:hover {
+            background: #218838;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1 id="user-title"></h1>
+        <h1>Данные пользователя</h1>
     </div>
     
     <div class="nav">
@@ -97,61 +96,68 @@
     </div>
     
     <div class="content">
-        <div class="status" id="user-status"></div>
-        <table class="data-table" id="data-table"></table>
-        <div class="download" id="download"></div>
+        <div id="status" class="status"></div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody id="userData">
+            </tbody>
+        </table>
+        <div id="downloadLink" style="margin-top: 20px;"></div>
     </div>
 
     <script>
-        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
+        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
         const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
 
-        const params = new URLSearchParams(window.location.search);
-        const username = params.get('username');
-        document.getElementById('user-title').textContent = 'Данные пользователя: ' + username;
-        
-        // Загружаем данные пользователя из jsonbin.io
-        fetch(API_URL, {
-            headers: { 'X-Master-Key': API_KEY }
-        })
-            .then(response => response.json())
-            .then(data => {
-                const user = data.record.users[username];
-                const statusDiv = document.getElementById('user-status');
-                
-                if (user && user.authorized) {
-                    statusDiv.textContent = 'Пользователь авторизован';
-                    statusDiv.className = 'status authorized';
-                } else {
-                    statusDiv.textContent = 'Пользователь не авторизован';
-                    statusDiv.className = 'status unauthorized';
-                }
-                
-                const table = document.getElementById('data-table');
-                if (user) {
-                    for (const key in user) {
-                        if (key === 'zip_url' || key === 'authorized') continue;
-                        const tr = document.createElement('tr');
-                        const td1 = document.createElement('td');
-                        const td2 = document.createElement('td');
-                        td1.textContent = key;
-                        td2.textContent = user[key];
-                        tr.appendChild(td1);
-                        tr.appendChild(td2);
-                        table.appendChild(tr);
-                    }
-                }
-                
-                if (user && user.zip_url) {
-                    document.getElementById('download').innerHTML =
-                        `<a href="${user.zip_url}" download>Скачать ZIP</a>`;
-                }
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            const results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        const username = getUrlParameter('username');
+        if (username) {
+            document.title = `Данные пользователя ${username}`;
+            
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
             })
-            .catch(error => {
-                console.error('Ошибка загрузки данных:', error);
-                document.getElementById('user-status').textContent = 'Ошибка загрузки данных пользователя';
-                document.getElementById('user-status').className = 'status unauthorized';
-            });
+                .then(response => response.json())
+                .then(data => {
+                    const user = data.record.users[username];
+                    if (user) {
+                        const statusDiv = document.getElementById('status');
+                        statusDiv.textContent = user.authorized ? 'Авторизован' : 'Не авторизован';
+                        statusDiv.className = `status ${user.authorized ? 'authorized' : 'unauthorized'}`;
+
+                        const tbody = document.getElementById('userData');
+                        for (const [key, value] of Object.entries(user)) {
+                            if (key !== 'authorized') {
+                                const row = tbody.insertRow();
+                                row.insertCell(0).textContent = key;
+                                row.insertCell(1).textContent = value;
+                            }
+                        }
+
+                        if (user.zip_url) {
+                            const downloadDiv = document.getElementById('downloadLink');
+                            downloadDiv.innerHTML = `<a href="${user.zip_url}" class="download-btn">Скачать архив</a>`;
+                        }
+                    } else {
+                        document.getElementById('status').textContent = 'Пользователь не найден';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('status').textContent = 'Ошибка при загрузке данных';
+                });
+        }
     </script>
 </body>
 </html>

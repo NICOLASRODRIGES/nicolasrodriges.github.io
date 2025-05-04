@@ -9,7 +9,8 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background: #f5f5f5;
+            background: #1a1a1a;
+            color: #ffffff;
         }
         .header {
             background: #2c3e50;
@@ -24,43 +25,41 @@
             margin-bottom: 20px;
         }
         .nav a {
-            color: #2c3e50;
+            color: #ffffff;
             text-decoration: none;
             padding: 10px 20px;
-            background: white;
+            background: #2c3e50;
             border-radius: 5px;
             transition: background 0.3s;
         }
         .nav a:hover {
-            background: #e0e0e0;
+            background: #34495e;
         }
-        .zips-list {
-            background: white;
+        .content {
+            background: #2c3e50;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .zip-item {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .zip-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
-        .zip-item:last-child {
-            border-bottom: none;
+        .zip-list li {
+            margin-bottom: 10px;
         }
-        .download-btn {
-            background: #007bff;
+        .zip-list a {
+            display: block;
+            padding: 10px;
+            background: #34495e;
             color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
             text-decoration: none;
+            border-radius: 4px;
             transition: background 0.3s;
         }
-        .download-btn:hover {
-            background: #0056b3;
+        .zip-list a:hover {
+            background: #2c3e50;
         }
         .error {
             color: #dc3545;
@@ -83,58 +82,41 @@
         <a href="authorized.html">Авторизация</a>
     </div>
     
-    <div class="zips-list" id="zipsList">
-        <!-- Список архивов будет добавлен через JavaScript -->
+    <div class="content">
+        <ul id="zipList" class="zip-list"></ul>
+        <div id="error" class="error"></div>
     </div>
-    
-    <div id="error" class="error"></div>
 
     <script>
-        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
+        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
         const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
 
-        function loadZips() {
-            const zipsList = document.getElementById('zipsList');
-            const errorDiv = document.getElementById('error');
-            
-            // Загружаем данные пользователей из jsonbin.io
-            fetch(API_URL, {
-                headers: { 'X-Master-Key': API_KEY }
+        fetch(API_URL, {
+            headers: { 'X-Master-Key': API_KEY }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const zipList = document.getElementById('zipList');
+                const users = data.record.users || {};
+                
+                for (const username in users) {
+                    const user = users[username];
+                    if (user.zip_url) {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = user.zip_url;
+                        a.textContent = `Архив пользователя ${username}`;
+                        li.appendChild(a);
+                        zipList.appendChild(li);
+                    }
+                }
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.record.users) {
-                        throw new Error('Нет данных о пользователях');
-                    }
-                    
-                    // Очищаем список
-                    zipsList.innerHTML = '';
-                    
-                    // Добавляем архивы для каждого пользователя
-                    Object.entries(data.record.users).forEach(([username, userData]) => {
-                        if (userData.zip_url) {
-                            const zipItem = document.createElement('div');
-                            zipItem.className = 'zip-item';
-                            zipItem.innerHTML = `
-                                <span>Архив пользователя ${username}</span>
-                                <a href="${userData.zip_url}" class="download-btn" download>Скачать</a>
-                            `;
-                            zipsList.appendChild(zipItem);
-                        }
-                    });
-                    
-                    if (zipsList.children.length === 0) {
-                        zipsList.innerHTML = '<p>Нет доступных архивов</p>';
-                    }
-                })
-                .catch(error => {
-                    errorDiv.textContent = 'Ошибка при загрузке данных: ' + error.message;
-                    errorDiv.style.display = 'block';
-                });
-        }
-        
-        // Загружаем архивы при загрузке страницы
-        loadZips();
+            .catch(error => {
+                console.error('Error:', error);
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = 'Ошибка при загрузке списка архивов';
+                errorDiv.style.display = 'block';
+            });
     </script>
 </body>
 </html>
