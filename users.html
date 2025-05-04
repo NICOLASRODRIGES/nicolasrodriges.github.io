@@ -27,6 +27,7 @@
             cursor: pointer;
             transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
             border: 1px solid var(--color-border);
+            position: relative;
         }
         .user-card:hover {
             transform: translateY(-8px) scale(1.04);
@@ -41,6 +42,24 @@
             letter-spacing: 1px;
             transition: color 0.18s;
             pointer-events: none;
+        }
+        .delete-user-btn {
+            position: absolute;
+            top: 0.7em;
+            right: 0.7em;
+            background: none;
+            border: none;
+            color: var(--color-accent);
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 0 0.3em;
+            border-radius: 50%;
+            transition: background 0.15s, color 0.15s;
+            z-index: 2;
+        }
+        .delete-user-btn:hover {
+            background: var(--color-bg-card);
+            color: #ff4d4f;
         }
         @media (max-width: 600px) {
             .user-list { gap: 1rem; }
@@ -82,17 +101,19 @@
         // --- Users logic ---
         const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667/latest';
         const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
-        fetch(API_URL, {
-            headers: { 'X-Master-Key': API_KEY }
-        })
-        .then(r=>r.json())
-        .then(data=>{
-            let users = data.record.users;
-            let list = document.getElementById('user-list');
-            for (let username in users) {
+        let usersData = {};
+        async function loadUsers() {
+            const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
+            const data = await response.json();
+            usersData = data.record.users || {};
+            const list = document.getElementById('user-list');
+            list.innerHTML = '';
+            for (let username in usersData) {
                 let card = document.createElement('div');
                 card.className = 'user-card';
-                card.onclick = () => {
+                card.onclick = (e) => {
+                    // Не переходить по карточке, если клик по кнопке удаления
+                    if (e.target.classList.contains('delete-user-btn')) return;
                     window.location.href = 'user.html?username=' + encodeURIComponent(username);
                 };
                 let a = document.createElement('a');
@@ -100,9 +121,44 @@
                 a.textContent = username;
                 a.className = 'user-link';
                 card.appendChild(a);
+                // Кнопка удаления
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-user-btn';
+                delBtn.title = 'Удалить пользователя';
+                delBtn.innerHTML = '🗑️';
+                delBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    if (confirm('Удалить пользователя "' + username + '"?')) {
+                        await deleteUser(username);
+                    }
+                };
+                card.appendChild(delBtn);
                 list.appendChild(card);
             }
-        });
+        }
+        loadUsers();
+        async function deleteUser(username) {
+            // Получаем свежие данные
+            const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
+            const data = await response.json();
+            if (data.record.users && data.record.users[username]) {
+                delete data.record.users[username];
+                // Сохраняем изменения (PUT без /latest)
+                const updateResponse = await fetch('https://api.jsonbin.io/v3/b/6816ae838a456b7966972667', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify(data.record)
+                });
+                if (updateResponse.ok) {
+                    loadUsers();
+                } else {
+                    alert('Ошибка при удалении пользователя');
+                }
+            }
+        }
     </script>
 </body>
 </html>
