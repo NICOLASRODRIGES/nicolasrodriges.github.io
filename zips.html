@@ -3,77 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>Архивы пользователей</title>
-    <style>
-        body { 
-            font-family: sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #1a1a1a;
-            color: #ffffff;
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Check authentication
+        if (localStorage.getItem('isAdmin') !== 'true') {
+            window.location.href = 'login.html';
         }
-        .header {
-            background: #223344;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .nav {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .nav a {
-            color: #ffffff;
-            text-decoration: none;
-            padding: 10px 20px;
-            background: #223344;
-            border-radius: 8px;
-            transition: background 0.3s;
-        }
-        .nav a:hover {
-            background: #34495e;
-        }
-        .content {
-            background: #223344;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .zip-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .zip-list li {
-            margin-bottom: 10px;
-        }
-        .zip-list a {
-            display: block;
-            padding: 10px;
-            background: #34495e;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-        .zip-list a:hover {
-            background: #223344;
-        }
-        .error {
-            color: #dc3545;
-            padding: 10px;
-            background: #f8d7da;
-            border-radius: 4px;
-            margin-top: 20px;
-            display: none;
-        }
-    </style>
+    </script>
 </head>
 <body>
     <div class="header">
         <h1>Архивы пользователей</h1>
+        <button onclick="logout()" style="float: right; margin-top: -40px;">Выйти</button>
     </div>
     
     <div class="nav">
@@ -90,15 +31,38 @@
 
     <script>
         const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
-        const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
+        const API_KEY = '$2a10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
 
-        fetch(API_URL, {
-            headers: { 'X-Master-Key': API_KEY }
-        })
-            .then(response => response.json())
-            .then(data => {
+        // Cache for user data
+        let userCache = null;
+        let lastFetchTime = 0;
+        const CACHE_DURATION = 30000; // 30 seconds
+
+        async function fetchUsers() {
+            const now = Date.now();
+            if (userCache && (now - lastFetchTime) < CACHE_DURATION) {
+                return userCache;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await response.json();
+                userCache = data.record.users || {};
+                lastFetchTime = now;
+                return userCache;
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        async function displayZips() {
+            try {
+                const users = await fetchUsers();
                 const zipList = document.getElementById('zipList');
-                const users = data.record.users || {};
+                zipList.innerHTML = '';
                 
                 for (const username in users) {
                     const user = users[username];
@@ -111,13 +75,24 @@
                         zipList.appendChild(li);
                     }
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error:', error);
                 const errorDiv = document.getElementById('error');
                 errorDiv.textContent = 'Ошибка при загрузке списка архивов';
                 errorDiv.style.display = 'block';
-            });
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('isAdmin');
+            window.location.href = 'login.html';
+        }
+
+        // Initial load
+        displayZips();
+
+        // Refresh data every 30 seconds
+        setInterval(displayZips, CACHE_DURATION);
     </script>
 </body>
 </html>
