@@ -1,98 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta charset="utf-8">
-    <title>Архивы пользователей</title>
-    <link rel="stylesheet" href="style.css">
-    <script>
-        // Check authentication
-        if (localStorage.getItem('isAdmin') !== 'true') {
-            window.location.href = 'login.html';
-        }
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление архивами</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
 </head>
 <body>
-    <div class="header">
-        <h1>Архивы пользователей</h1>
-        <button onclick="logout()" style="float: right; margin-top: -40px;">Выйти</button>
-    </div>
-    
-    <div class="nav">
-        <a href="index.html">Главная</a>
-        <a href="users.html">Пользователи</a>
-        <a href="authorized.html">Авторизация</a>
-        <a href="zips.html">Архивы</a>
-    </div>
-    
-    <div class="content">
-        <ul id="zipList" class="zip-list"></ul>
-        <div id="error" class="error"></div>
+    <div class="container mt-4">
+        <h1>Управление архивами</h1>
+        <button onclick="logout()" class="btn btn-danger mb-3">Выйти</button>
+        <button onclick="window.location.href='index.html'" class="btn btn-secondary mb-3">На главную</button>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Добавить новый архив</h5>
+                <form id="zipForm" onsubmit="event.preventDefault(); saveZip({
+                    name: document.getElementById('name').value,
+                    description: document.getElementById('description').value,
+                    url: document.getElementById('url').value
+                });">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Название</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="url" class="form-label">URL</label>
+                        <input type="url" class="form-control" id="url" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Список архивов</h5>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Описание</th>
+                            <th>URL</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="zipsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
+    <script src="js/auth.js"></script>
+    <script src="js/zips.js"></script>
     <script>
-        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
-        const API_KEY = '$2a10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
-
-        // Cache for user data
-        let userCache = null;
-        let lastFetchTime = 0;
-        const CACHE_DURATION = 30000; // 30 seconds
-
-        async function fetchUsers() {
-            const now = Date.now();
-            if (userCache && (now - lastFetchTime) < CACHE_DURATION) {
-                return userCache;
+        // Load zips when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const sessionToken = localStorage.getItem('sessionToken');
+            if (!sessionToken) {
+                window.location.href = 'login.html';
+                return;
             }
-
-            try {
-                const response = await fetch(API_URL, {
-                    headers: { 'X-Master-Key': API_KEY }
-                });
-                const data = await response.json();
-                userCache = data.record.users || {};
-                lastFetchTime = now;
-                return userCache;
-            } catch (error) {
-                console.error('Error:', error);
-                throw error;
-            }
-        }
-
-        async function displayZips() {
-            try {
-                const users = await fetchUsers();
-                const zipList = document.getElementById('zipList');
-                zipList.innerHTML = '';
-                
-                for (const username in users) {
-                    const user = users[username];
-                    if (user.zip_url) {
-                        const li = document.createElement('li');
-                        const a = document.createElement('a');
-                        a.href = user.zip_url;
-                        a.textContent = `Архив пользователя ${username}`;
-                        li.appendChild(a);
-                        zipList.appendChild(li);
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                const errorDiv = document.getElementById('error');
-                errorDiv.textContent = 'Ошибка при загрузке списка архивов';
-                errorDiv.style.display = 'block';
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('isAdmin');
-            window.location.href = 'login.html';
-        }
-
-        // Initial load
-        displayZips();
-
-        // Refresh data every 30 seconds
-        setInterval(displayZips, CACHE_DURATION);
+            loadZips();
+        });
     </script>
 </body>
 </html>
