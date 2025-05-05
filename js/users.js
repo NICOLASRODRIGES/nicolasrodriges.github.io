@@ -1,7 +1,7 @@
 async function loadUsers() {
     try {
-        const response = await fetch(API_URL, {
-            headers: { 'X-Master-Key': API_KEY }
+        const response = await fetch(window.API_CONFIG.API_URL, {
+            headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
         });
         const data = await response.json();
         const users = data.record.users || [];
@@ -29,8 +29,8 @@ async function loadUsers() {
 
 async function saveUser(userData) {
     try {
-        const response = await fetch(API_URL, {
-            headers: { 'X-Master-Key': API_KEY }
+        const response = await fetch(window.API_CONFIG.API_URL, {
+            headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
         });
         const data = await response.json();
         const users = data.record.users || [];
@@ -41,11 +41,11 @@ async function saveUser(userData) {
             users.push(userData);
         }
         
-        await fetch(API_URL, {
+        await fetch(window.API_CONFIG.API_URL, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Master-Key': API_KEY
+                'X-Master-Key': window.API_CONFIG.API_KEY
             },
             body: JSON.stringify({ ...data.record, users })
         });
@@ -62,19 +62,19 @@ async function deleteUser(index) {
     }
     
     try {
-        const response = await fetch(API_URL, {
-            headers: { 'X-Master-Key': API_KEY }
+        const response = await fetch(window.API_CONFIG.API_URL, {
+            headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
         });
         const data = await response.json();
         const users = data.record.users || [];
         
         users.splice(index, 1);
         
-        await fetch(API_URL, {
+        await fetch(window.API_CONFIG.API_URL, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Master-Key': API_KEY
+                'X-Master-Key': window.API_CONFIG.API_KEY
             },
             body: JSON.stringify({ ...data.record, users })
         });

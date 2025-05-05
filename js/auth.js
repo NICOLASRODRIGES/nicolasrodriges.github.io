@@ -1,6 +1,3 @@
-const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
-const API_KEY = '$2a10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
-
 async function hashPassword(password) {
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
@@ -30,8 +27,8 @@ async function login() {
     }
 
     try {
-        const response = await fetch(API_URL, {
-            headers: { 'X-Master-Key': API_KEY }
+        const response = await fetch(window.API_CONFIG.API_URL, {
+            headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
         });
         const data = await response.json();
         const admins = data.record.admins || {};
@@ -46,11 +43,11 @@ async function login() {
             admins[username].sessionToken = sessionToken;
             admins[username].lastLogin = new Date().toISOString();
             
-            await fetch(API_URL, {
+            await fetch(window.API_CONFIG.API_URL, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Master-Key': API_KEY
+                    'X-Master-Key': window.API_CONFIG.API_KEY
                 },
                 body: JSON.stringify({ ...data.record, admins })
             });
@@ -73,8 +70,8 @@ async function checkAuth() {
     
     if (sessionToken && adminUsername) {
         try {
-            const response = await fetch(API_URL, {
-                headers: { 'X-Master-Key': API_KEY }
+            const response = await fetch(window.API_CONFIG.API_URL, {
+                headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
             });
             const data = await response.json();
             const admins = data.record.admins || {};

@@ -1,170 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta charset="utf-8">
-    <title>Данные пользователя</title>
-    <link rel="stylesheet" href="style.css">
-    <script>
-        // Check authentication
-        if (localStorage.getItem('isAdmin') !== 'true') {
-            window.location.href = 'login.html';
-        }
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Информация о пользователе</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
 </head>
 <body>
-    <div class="header">
-        <h1>Данные пользователя</h1>
-        <button onclick="logout()" style="float: right; margin-top: -40px;">Выйти</button>
-    </div>
-    
-    <div class="nav">
-        <a href="index.html">Главная</a>
-        <a href="users.html">Пользователи</a>
-        <a href="authorized.html">Авторизация</a>
-        <a href="zips.html">Архивы</a>
-    </div>
-    
-    <div class="content">
-        <div id="status" class="status"></div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Параметр</th>
-                    <th>Значение</th>
-                </tr>
-            </thead>
-            <tbody id="userData">
-            </tbody>
-        </table>
-        <div id="downloadBlock" style="margin-top: 20px; display: flex; gap: 10px;"></div>
+    <div class="container mt-4">
+        <h1>Информация о пользователе</h1>
+        <button onclick="logout()" class="btn btn-danger mb-3">Выйти</button>
+        <button onclick="window.location.href='authorized.html'" class="btn btn-secondary mb-3">Назад</button>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Детали пользователя</h5>
+                <div id="userDetails"></div>
+            </div>
+        </div>
     </div>
 
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
     <script>
-        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
-        const API_KEY = '$2a10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
+        // Load user details when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            const sessionToken = localStorage.getItem('sessionToken');
+            if (!sessionToken) {
+                window.location.href = 'login.html';
+                return;
+            }
 
-        // Cache for user data
-        let userCache = null;
-        let lastFetchTime = 0;
-        const CACHE_DURATION = 30000; // 30 seconds
-
-        function getUrlParameter(name) {
-            name = name.replace(/[[\]]/g, '\\$&');
-            const regex = new RegExp('[\?&]' + name + '=([^&#]*)');
-            const results = regex.exec(location.search);
-            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-        }
-
-        async function fetchUsers() {
-            const now = Date.now();
-            if (userCache && (now - lastFetchTime) < CACHE_DURATION) {
-                return userCache;
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('username');
+            
+            if (!username) {
+                alert('Имя пользователя не указано');
+                window.location.href = 'authorized.html';
+                return;
             }
 
             try {
-                const response = await fetch(API_URL, {
-                    headers: { 'X-Master-Key': API_KEY }
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
                 });
                 const data = await response.json();
-                userCache = data.record.users || {};
-                lastFetchTime = now;
-                return userCache;
-            } catch (error) {
-                console.error('Error:', error);
-                throw error;
-            }
-        }
-
-        async function removeAuthorization(username) {
-            if (!confirm(`Снять авторизацию с пользователя ${username}?`)) return;
-            
-            try {
-                const data = await fetchUsers();
-                if (data[username]) {
-                    data[username].authorized = false;
-                    const response = await fetch(API_URL, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': API_KEY
-                        },
-                        body: JSON.stringify({ users: data })
-                    });
-
-                    if (response.ok) {
-                        userCache = null; // Invalidate cache
-                        location.reload();
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        async function displayUserData() {
-            const username = getUrlParameter('username');
-            if (!username) return;
-
-            document.title = `Данные пользователя ${username}`;
-            
-            try {
-                const users = await fetchUsers();
-                const user = users[username];
+                const user = data.record.users[username];
                 
-                if (user) {
-                    const statusDiv = document.getElementById('status');
-                    statusDiv.textContent = user.authorized ? 'Авторизован' : 'Не авторизован';
-                    statusDiv.className = `status ${user.authorized ? 'authorized' : 'unauthorized'}`;
-
-                    const tbody = document.getElementById('userData');
-                    tbody.innerHTML = '';
-                    for (const [key, value] of Object.entries(user)) {
-                        if (key !== 'authorized') {
-                            const row = tbody.insertRow();
-                            row.insertCell(0).textContent = key;
-                            row.insertCell(1).textContent = value;
-                        }
-                    }
-
-                    const downloadBlock = document.getElementById('downloadBlock');
-                    downloadBlock.innerHTML = '';
-                    if (user.zip_url) {
-                        const downloadBtn = document.createElement('a');
-                        downloadBtn.href = user.zip_url;
-                        downloadBtn.className = 'download-btn';
-                        downloadBtn.textContent = 'Скачать архив';
-                        downloadBlock.appendChild(downloadBtn);
-                    }
-                    if (user.authorized) {
-                        const removeBtn = document.createElement('a');
-                        removeBtn.href = '#';
-                        removeBtn.className = 'remove-auth-btn';
-                        removeBtn.textContent = 'Снять авторизацию';
-                        removeBtn.onclick = (e) => {
-                            e.preventDefault();
-                            removeAuthorization(username);
-                        };
-                        downloadBlock.appendChild(removeBtn);
-                    }
-                } else {
-                    document.getElementById('status').textContent = 'Пользователь не найден';
+                if (!user) {
+                    alert('Пользователь не найден');
+                    window.location.href = 'authorized.html';
+                    return;
                 }
+
+                const detailsDiv = document.getElementById('userDetails');
+                detailsDiv.innerHTML = `
+                    <p><strong>Имя пользователя:</strong> ${username}</p>
+                    <p><strong>Статус авторизации:</strong> ${user.authorized ? 'Авторизован' : 'Не авторизован'}</p>
+                    <p><strong>Дата последней авторизации:</strong> ${user.authorizedAt ? new Date(user.authorizedAt).toLocaleString() : 'Нет данных'}</p>
+                `;
             } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('status').textContent = 'Ошибка при загрузке данных';
+                console.error('Error loading user details:', error);
+                alert('Ошибка при загрузке информации о пользователе');
             }
-        }
-
-        function logout() {
-            localStorage.removeItem('isAdmin');
-            window.location.href = 'login.html';
-        }
-
-        // Initial load
-        displayUserData();
-
-        // Refresh data every 30 seconds
-        setInterval(displayUserData, CACHE_DURATION);
+        });
     </script>
 </body>
 </html>
