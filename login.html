@@ -40,16 +40,16 @@
                     </div>
                     <div class="card-body">
                         <div id="error" class="alert alert-danger" style="display: none;"></div>
-                        <form onsubmit="event.preventDefault(); login();">
+                        <form id="loginForm">
                             <div class="mb-3">
                                 <label for="username" class="form-label">Имя пользователя</label>
-                                <input type="text" class="form-control" id="username" required>
+                                <input type="text" class="form-control" id="username" value="111" required>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Пароль</label>
-                                <input type="password" class="form-control" id="password" required>
+                                <input type="password" class="form-control" id="password" value="1234" required>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">Войти</button>
+                            <button type="button" class="btn btn-primary w-100" onclick="login()">Войти</button>
                         </form>
                     </div>
                 </div>
@@ -59,8 +59,14 @@
     <script src="js/dist/config.min.js"></script>
     <script src="js/dist/auth.min.js"></script>
     <script>
-        // Check authentication status when page loads
+        // Проверка авторизации при загрузке страницы
         document.addEventListener('DOMContentLoaded', checkAuth);
+        
+        // Добавляем обработчик для формы
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            login();
+        });
     </script>
 </body>
 </html> 
