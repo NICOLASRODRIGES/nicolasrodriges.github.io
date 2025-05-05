@@ -3,18 +3,167 @@
 <head>
     <meta charset="utf-8">
     <title>Авторизация</title>
-    <link rel="stylesheet" href="style.css">
-    <script>
-        // Check authentication
-        if (localStorage.getItem('isAdmin') !== 'true') {
-            window.location.href = 'login.html';
+    <style>
+        body { 
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #ffffff;
         }
-    </script>
+        .header {
+            background: #223344;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: #223344;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: #34495e;
+        }
+        .auth-form {
+            background: #223344;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #34495e;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .error {
+            color: #dc3545;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            color: #155724;
+            margin-top: 10px;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 4px;
+            display: none;
+        }
+        .users-list {
+            background: #223344;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .users-list h2 {
+            margin-top: 0;
+        }
+        .user-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #34495e;
+        }
+        .user-row:last-child {
+            border-bottom: none;
+        }
+        .user-status {
+            margin-right: 20px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        .user-status.authorized {
+            background: #28a745;
+            color: white;
+        }
+        .user-status.unauthorized {
+            background: #dc3545;
+            color: white;
+        }
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 7px 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .remove-btn:hover {
+            background: #a71d2a;
+        }
+        .auth-users {
+            background: #223344;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        .auth-users h3 {
+            margin-top: 0;
+        }
+        .auth-users ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .auth-users li {
+            margin-bottom: 8px;
+            color: #28a745;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-auth-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .remove-auth-btn:hover {
+            background: #c82333;
+        }
+    </style>
 </head>
 <body>
     <div class="header">
         <h1>Авторизация пользователя</h1>
-        <button onclick="logout()" style="float: right; margin-top: -40px;">Выйти</button>
     </div>
     
     <div class="nav">
@@ -42,34 +191,9 @@
 
     <script>
         const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
-        const API_KEY = '$2a10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
+        const API_KEY = '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
 
-        // Cache for user data
-        let userCache = null;
-        let lastFetchTime = 0;
-        const CACHE_DURATION = 30000; // 30 seconds
-
-        async function fetchUsers() {
-            const now = Date.now();
-            if (userCache && (now - lastFetchTime) < CACHE_DURATION) {
-                return userCache;
-            }
-
-            try {
-                const response = await fetch(API_URL, {
-                    headers: { 'X-Master-Key': API_KEY }
-                });
-                const data = await response.json();
-                userCache = data.record.users || {};
-                lastFetchTime = now;
-                return userCache;
-            } catch (error) {
-                console.error('Error:', error);
-                throw error;
-            }
-        }
-
-        async function authorizeUser() {
+        function authorizeUser() {
             const username = document.getElementById('username').value.trim();
             const errorDiv = document.getElementById('error');
             const successDiv = document.getElementById('success');
@@ -83,133 +207,128 @@
                 return;
             }
 
-            try {
-                const data = await fetchUsers();
-                if (!data[username]) {
-                    data[username] = {};
-                }
-                data[username].authorized = true;
-
-                const response = await fetch(API_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': API_KEY
-                    },
-                    body: JSON.stringify({ users: data })
-                });
-
-                if (response.ok) {
-                    successDiv.textContent = 'Пользователь успешно авторизован!';
-                    successDiv.style.display = 'block';
-                    userCache = null; // Invalidate cache
-                    loadUsers();
-                    loadAuthUsers();
-                } else {
-                    throw new Error('Ошибка при обновлении данных');
-                }
-            } catch (error) {
-                errorDiv.textContent = 'Произошла ошибка: ' + error.message;
-                errorDiv.style.display = 'block';
-            }
-        }
-
-        async function removeAuthorization(username) {
-            if (!confirm(`Снять авторизацию с пользователя ${username}?`)) return;
-            
-            try {
-                const data = await fetchUsers();
-                if (data[username]) {
-                    data[username].authorized = false;
-                    const response = await fetch(API_URL, {
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.record.users) {
+                        data.record.users = {};
+                    }
+                    if (!data.record.users[username]) {
+                        data.record.users[username] = {};
+                    }
+                    data.record.users[username].authorized = true;
+                    return fetch(API_URL, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Master-Key': API_KEY
                         },
-                        body: JSON.stringify({ users: data })
+                        body: JSON.stringify(data.record)
                     });
-
+                })
+                .then(response => {
                     if (response.ok) {
-                        userCache = null; // Invalidate cache
+                        successDiv.textContent = 'Пользователь успешно авторизован!';
+                        successDiv.style.display = 'block';
+                        loadUsers();
+                        loadAuthUsers();
+                    } else {
+                        throw new Error('Ошибка при обновлении данных');
+                    }
+                })
+                .catch(error => {
+                    errorDiv.textContent = 'Произошла ошибка: ' + error.message;
+                    errorDiv.style.display = 'block';
+                });
+        }
+
+        function removeAuthorization(username) {
+            if (!confirm(`Снять авторизацию с пользователя ${username}?`)) return;
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.record.users && data.record.users[username]) {
+                        data.record.users[username].authorized = false;
+                        return fetch(API_URL, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Master-Key': API_KEY
+                            },
+                            body: JSON.stringify(data.record)
+                        });
+                    }
+                })
+                .then(response => {
+                    if (response && response.ok) {
                         loadAuthUsers();
                     }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        async function loadUsers() {
-            try {
-                const users = await fetchUsers();
-                const usersDiv = document.getElementById('users');
-                usersDiv.innerHTML = '';
-                
-                Object.keys(users).forEach(username => {
-                    const user = users[username];
-                    const row = document.createElement('div');
-                    row.className = 'user-row';
-                    const status = document.createElement('span');
-                    status.className = 'user-status ' + (user.authorized ? 'authorized' : 'unauthorized');
-                    status.textContent = user.authorized ? 'Авторизован' : 'Не авторизован';
-                    row.appendChild(document.createTextNode(username));
-                    row.appendChild(status);
-                    if (user.authorized) {
-                        const btn = document.createElement('button');
-                        btn.className = 'remove-btn';
-                        btn.textContent = 'Снять авторизацию';
-                        btn.onclick = () => removeAuthorization(username);
-                        row.appendChild(btn);
-                    }
-                    usersDiv.appendChild(row);
                 });
-            } catch (error) {
-                console.error('Error:', error);
-            }
         }
 
-        async function loadAuthUsers() {
-            try {
-                const users = await fetchUsers();
-                const list = document.getElementById('authUsers');
-                list.innerHTML = '';
-                
-                Object.keys(users).forEach(username => {
-                    if (users[username].authorized) {
-                        const li = document.createElement('li');
-                        li.textContent = username;
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-auth-btn';
-                        removeBtn.textContent = 'Снять авторизацию';
-                        removeBtn.onclick = () => removeAuthorization(username);
-                        li.appendChild(removeBtn);
-                        list.appendChild(li);
+        function loadUsers() {
+            const usersDiv = document.getElementById('users');
+            usersDiv.innerHTML = '';
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const users = data.record.users || {};
+                    Object.keys(users).forEach(username => {
+                        const user = users[username];
+                        const row = document.createElement('div');
+                        row.className = 'user-row';
+                        const status = document.createElement('span');
+                        status.className = 'user-status ' + (user.authorized ? 'authorized' : 'unauthorized');
+                        status.textContent = user.authorized ? 'Авторизован' : 'Не авторизован';
+                        row.appendChild(document.createTextNode(username));
+                        row.appendChild(status);
+                        if (user.authorized) {
+                            const btn = document.createElement('button');
+                            btn.className = 'remove-btn';
+                            btn.textContent = 'Снять авторизацию';
+                            btn.onclick = () => removeAuthorization(username);
+                            row.appendChild(btn);
+                        }
+                        usersDiv.appendChild(row);
+                    });
+                });
+        }
+
+        function loadAuthUsers() {
+            const list = document.getElementById('authUsers');
+            list.innerHTML = '';
+            fetch(API_URL, {
+                headers: { 'X-Master-Key': API_KEY }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const users = data.record.users || {};
+                    Object.keys(users).forEach(username => {
+                        if (users[username].authorized) {
+                            const li = document.createElement('li');
+                            li.textContent = username;
+                            const removeBtn = document.createElement('button');
+                            removeBtn.className = 'remove-auth-btn';
+                            removeBtn.textContent = 'Снять авторизацию';
+                            removeBtn.onclick = () => removeAuthorization(username);
+                            li.appendChild(removeBtn);
+                            list.appendChild(li);
+                        }
+                    });
+                    if (!list.hasChildNodes()) {
+                        list.innerHTML = '<li style="color:#dc3545">Нет авторизованных пользователей</li>';
                     }
                 });
-                
-                if (!list.hasChildNodes()) {
-                    list.innerHTML = '<li style="color:#dc3545">Нет авторизованных пользователей</li>';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
         }
 
-        function logout() {
-            localStorage.removeItem('isAdmin');
-            window.location.href = 'login.html';
-        }
-
-        // Initial load
         loadUsers();
         loadAuthUsers();
-
-        // Refresh data every 30 seconds
-        setInterval(() => {
-            loadUsers();
-            loadAuthUsers();
-        }, CACHE_DURATION);
     </script>
 </body>
 </html> 

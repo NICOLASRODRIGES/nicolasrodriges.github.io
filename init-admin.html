@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Инициализация администратора</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Инициализация администратора</h1>
+    </div>
+    
+    <div class="login-form">
+        <input type="text" id="username" placeholder="Имя пользователя">
+        <input type="password" id="password" placeholder="Пароль">
+        <input type="password" id="confirmPassword" placeholder="Подтвердите пароль">
+        <button onclick="initAdmin()">Создать администратора</button>
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667';
+        const API_KEY = '$2a10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC';
+
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        async function initAdmin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            if (!username || !password || !confirmPassword) {
+                errorDiv.textContent = 'Пожалуйста, заполните все поля';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Пароли не совпадают';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (password.length < 8) {
+                errorDiv.textContent = 'Пароль должен содержать минимум 8 символов';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await response.json();
+                const admins = data.record.admins || {};
+                
+                if (admins[username]) {
+                    errorDiv.textContent = 'Пользователь с таким именем уже существует';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                const hashedPassword = await hashPassword(password);
+                admins[username] = {
+                    password: hashedPassword,
+                    created: new Date().toISOString()
+                };
+
+                await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ ...data.record, admins })
+                });
+
+                successDiv.textContent = 'Администратор успешно создан!';
+                successDiv.style.display = 'block';
+                
+                // Очищаем поля
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } catch (error) {
+                console.error('Ошибка:', error);
+                errorDiv.textContent = 'Произошла ошибка при создании администратора';
+                errorDiv.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html> 
