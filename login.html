@@ -40,16 +40,17 @@
                     </div>
                     <div class="card-body">
                         <div id="error" class="alert alert-danger" style="display: none;"></div>
+                        <div id="debug" class="alert alert-info" style="display: none;"></div>
                         <form id="loginForm">
                             <div class="mb-3">
                                 <label for="username" class="form-label">Имя пользователя</label>
-                                <input type="text" class="form-control" id="username" value="111" required>
+                                <input type="text" class="form-control" id="username" value="111">
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Пароль</label>
-                                <input type="password" class="form-control" id="password" value="1234" required>
+                                <input type="password" class="form-control" id="password" value="1234">
                             </div>
-                            <button type="button" class="btn btn-primary w-100" onclick="login()">Войти</button>
+                            <button type="button" class="btn btn-primary w-100" onclick="tryLogin()">Войти</button>
                         </form>
                     </div>
                 </div>
@@ -59,13 +60,31 @@
     <script src="js/dist/config.min.js"></script>
     <script src="js/dist/auth.min.js"></script>
     <script>
-        // Проверка авторизации при загрузке страницы
-        document.addEventListener('DOMContentLoaded', checkAuth);
-        
-        // Добавляем обработчик для формы
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            login();
+        async function tryLogin() {
+            const debugDiv = document.getElementById('debug');
+            debugDiv.style.display = 'block';
+            debugDiv.textContent = 'Попытка входа...';
+            
+            try {
+                await login();
+                debugDiv.textContent += '\nВход выполнен успешно!';
+            } catch (error) {
+                debugDiv.textContent += '\nОшибка: ' + error.message;
+                console.error('Ошибка входа:', error);
+            }
+        }
+
+        // Проверка конфигурации при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            const debugDiv = document.getElementById('debug');
+            debugDiv.style.display = 'block';
+            debugDiv.textContent = 'Проверка конфигурации...';
+            
+            if (window.API_CONFIG) {
+                debugDiv.textContent += '\nКонфигурация загружена';
+            } else {
+                debugDiv.textContent += '\nОшибка: конфигурация не найдена';
+            }
         });
     </script>
 </body>
