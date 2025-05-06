@@ -10,17 +10,12 @@
 <body>
     <div class="container mt-4">
         <h1>Управление архивами</h1>
-        <button onclick="logout()" class="btn btn-danger mb-3">Выйти</button>
         <button onclick="window.location.href='index.html'" class="btn btn-secondary mb-3">На главную</button>
         
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Добавить новый архив</h5>
-                <form id="zipForm" onsubmit="event.preventDefault(); saveZip({
-                    name: document.getElementById('name').value,
-                    description: document.getElementById('description').value,
-                    url: document.getElementById('url').value
-                });">
+                <form id="zipForm">
                     <div class="mb-3">
                         <label for="name" class="form-label">Название</label>
                         <input type="text" class="form-control" id="name" required>
@@ -55,20 +50,5 @@
             </div>
         </div>
     </div>
-
-    <script src="js/config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/zips.js"></script>
-    <script>
-        // Load zips when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            const sessionToken = localStorage.getItem('sessionToken');
-            if (!sessionToken) {
-                window.location.href = 'login.html';
-                return;
-            }
-            loadZips();
-        });
-    </script>
 </body>
 </html>

@@ -6,69 +6,977 @@
     <title>Управление пользователями</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
+    <!-- Предзагрузка данных -->
+    <link rel="preload" href="https://api.jsonbin.io/v3/b/6816ae838a456b7966972667" as="fetch" crossorigin>
+    <style>
+        /* Обновляем стили для info-item */
+        .info-item {
+            margin: 0.7rem 0;
+            display: flex;
+            align-items: center;
+            background: transparent;
+            padding: 8px 0;
+        }
+
+        .info-label {
+            color: #00ffbb;
+            font-weight: 500;
+            width: 140px;
+            font-size: 1.2rem;
+        }
+
+        .info-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .info-value {
+            color: #ffffff;
+            font-size: 1.2rem;
+        }
+
+        /* Обновленные стили для кнопки копирования */
+        .copy-button {
+            background: transparent;
+            border: none;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-button svg {
+            width: 20px;
+            height: 20px;
+            color: #00ffbb;
+        }
+
+        .copy-button:hover svg {
+            transform: scale(1.2);
+        }
+
+        .copy-button:active svg {
+            transform: scale(0.9);
+        }
+
+        /* Стили для уведомления */
+        .notification {
+            background: #1a1e2e;
+            border: 1px solid #64ffda;
+            color: #64ffda;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(100, 255, 218, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification::before {
+            content: '✓';
+            font-weight: bold;
+            color: #64ffda;
+        }
+
+        /* Анимация для успешного копирования */
+        @keyframes checkmark {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .copy-success svg {
+            animation: checkmark 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* Стили для уведомления */
+        .notification-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification {
+            background: #1a1e2e;
+            border: 1px solid #64ffda;
+            color: #64ffda;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(100, 255, 218, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Обновляем стили для info-item */
+        .info-item {
+            margin: 1rem 0;
+            color: var(--color-text-alt);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(26, 30, 46, 0.5);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .info-item:hover {
+            background: rgba(26, 30, 46, 0.8);
+        }
+
+        .info-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .details-content {
+            padding: 1.5rem 0;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <h1>Управление пользователями</h1>
-        <button onclick="logout()" class="btn btn-danger mb-3">Выйти</button>
-        <button onclick="window.location.href='index.html'" class="btn btn-secondary mb-3">На главную</button>
+    <div class="container">
+        <div class="header-section">
+            <h1 class="main-title">Пользователи</h1>
+            <div class="header-buttons">
+                <button id="backButton" onclick="showUserList()" class="nav-button" style="display: none;">
+                    <span class="button-text">Назад к списку</span>
+                    <span class="button-icon">←</span>
+                </button>
+                <button onclick="window.location.href='index.html'" class="nav-button">
+                    <span class="button-text">На главную</span>
+                    <span class="button-icon">←</span>
+                </button>
+            </div>
+        </div>
         
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Добавить нового пользователя</h5>
-                <form id="userForm" onsubmit="event.preventDefault(); saveUser({
-                    name: document.getElementById('name').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value
-                });">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Имя</label>
-                        <input type="text" class="form-control" id="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Телефон</label>
-                        <input type="tel" class="form-control" id="phone" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="card mt-4">
-            <div class="card-body">
-                <h5 class="card-title">Список пользователей</h5>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Имя</th>
-                            <th>Email</th>
-                            <th>Телефон</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody"></tbody>
-                </table>
-            </div>
-        </div>
+        <div id="usersList" class="users-grid"></div>
+        <div id="userDetails" class="user-details-container" style="display: none;"></div>
     </div>
 
-    <script src="js/config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/users.js"></script>
     <script>
-        // Load users when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            const sessionToken = localStorage.getItem('sessionToken');
-            if (!sessionToken) {
-                window.location.href = 'login.html';
-                return;
+        // Конфигурация API
+        window.API_CONFIG = {
+            API_URL: 'https://api.jsonbin.io/v3/b/681a874e8960c979a594a392',
+            API_KEY: '$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662'
+        };
+
+        // Вспомогательная функция для обновления данных пользователя
+        async function UpdateBinWithUser(username, userData) {
+            try {
+                // Получаем текущие данные
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                if (!data.record || !data.record.users) {
+                    throw new Error('Неверный формат данных');
+                }
+                
+                // Обновляем или добавляем данные пользователя
+                const users = data.record.users || {};
+                users[username] = {
+                    ...users[username],  // Сохраняем существующие данные
+                    ...userData,         // Добавляем новые данные
+                    lastUpdate: new Date().toISOString()
+                };
+                
+                // Отправляем обновленные данные
+                const updateResponse = await fetch(window.API_CONFIG.API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': window.API_CONFIG.API_KEY
+                    },
+                    body: JSON.stringify({ ...data.record, users })
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error(`Ошибка обновления: ${updateResponse.status}`);
+                }
+                
+                // Обновляем кэш
+                usersCache = users;
+                lastFetchTime = Date.now();
+                
+                return true;
+            } catch (error) {
+                console.error('Ошибка обновления данных пользователя:', error);
+                throw error;
             }
+        }
+
+        // Кэш для данных
+        let usersCache = null;
+        let lastFetchTime = 0;
+        const CACHE_DURATION = 30000; // 30 секунд
+
+        // Загрузка пользователей
+        async function loadUsers() {
+            try {
+                console.log('Начало загрузки пользователей...');
+                
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const usersList = document.getElementById('usersList');
+                usersList.innerHTML = '';
+                
+                // Получаем всех пользователей из основной таблицы
+                Object.entries(data.record).forEach(([username, userData]) => {
+                    if (userData && typeof userData.authorized !== 'undefined') {
+                        const userCard = document.createElement('div');
+                        userCard.className = 'user-card';
+                        
+                        userCard.innerHTML = `
+                            <div class="user-header" onclick="showUserDetails('${username}')">
+                                <div class="user-title">
+                                    <h3>${username}</h3>
+                                    ${userData.authorized ? '<span class="status-badge">Верифицирован</span>' : ''}
+                                </div>
+                                <div class="toggle-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        `;
+                        
+                        usersList.appendChild(userCard);
+                    }
+                });
+
+                if (usersList.children.length === 0) {
+                    usersList.innerHTML = '<div class="empty-state">Список пользователей пуст</div>';
+                }
+
+                // Обновляем кэш
+                usersCache = data.record;
+                lastFetchTime = Date.now();
+            } catch (error) {
+                console.error('Ошибка загрузки пользователей:', error);
+                document.getElementById('usersList').innerHTML = `
+                    <div class="error-state">
+                        <div class="error-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <div class="error-text">Ошибка загрузки: ${error.message}</div>
+                        <button onclick="retryLoad()" class="retry-button">
+                            <span class="button-text">Повторить</span>
+                            <span class="button-icon">↻</span>
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Функция повторной загрузки
+        function retryLoad() {
+            // Сбрасываем кэш при повторной попытке
+            usersCache = null;
+            lastFetchTime = 0;
             loadUsers();
-        });
+        }
+
+        // Показать детали пользователя
+        function showUserDetails(username) {
+            const user = usersCache[username];
+            if (!user) return;
+
+            const userDetails = document.getElementById('userDetails');
+            const usersList = document.getElementById('usersList');
+            const backButton = document.getElementById('backButton');
+            const mainTitle = document.querySelector('.main-title');
+
+            const userInfo = [];
+            if (user.pc_username) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">Username:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.pc_username}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.pc_username}', 'Username')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
+                                <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.computer_name) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">PC:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.computer_name}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.computer_name}', 'PC')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
+                                <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.login) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">Login:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.login}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.login}', 'Login')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
+                                <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.local_ip) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">Local IP:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.local_ip}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.local_ip}', 'Local IP')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
+                                <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.public_ip) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">Public IP:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.public_ip}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.public_ip}', 'Public IP')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
+                                <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.mac_addr) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">MAC:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.mac_addr}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.mac_addr}', 'MAC Address')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.hwid) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">Machine Guid:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.machine_guid}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.machine_guid}', 'Machine Guid')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.hwid) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">HWID:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.hwid}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.hwid}', 'HWID')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.hwid) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">SSID:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.ssid}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.ssid}', 'SSID')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.serial) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">Serial:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.serial}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.serial}', 'Serial')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.product_id) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">Product ID:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.product_id}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.product_id}', 'Product ID')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+            if (user.bios_release) userInfo.push(`
+                <div class="info-item">
+                    <span class="info-label">BIOS:</span>
+                    <div class="info-content">
+                        <span class="info-value">${user.bios_release}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${user.bios_release}', 'BIOS')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`);
+
+            userDetails.innerHTML = `
+                <div class="user-details-card">
+                    <div class="user-header">
+                        <div class="user-title">
+                            <h2>${username}</h2>
+                            ${user.authorized ? '<span class="status-badge">Верифицирован</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="details-content">
+                        ${userInfo.join('')}
+                    </div>
+                    <div class="user-actions">
+                        <button class="action-button ${user.authorized ? 'deactivate' : 'vereficate'}" 
+                                onclick="toggleVerification('${username}')">
+                            <span class="button-text">${user.authorized ? 'Снять верификацию' : 'Верифицировать'}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            mainTitle.textContent = 'Информация о пользователе';
+            usersList.style.display = 'none';
+            userDetails.style.display = 'block';
+            backButton.style.display = 'flex';
+        }
+
+        // Показать список пользователей
+        function showUserList() {
+            const userDetails = document.getElementById('userDetails');
+            const usersList = document.getElementById('usersList');
+            const backButton = document.getElementById('backButton');
+            const mainTitle = document.querySelector('.main-title');
+
+            mainTitle.textContent = 'Пользователи';
+            usersList.style.display = 'grid';
+            userDetails.style.display = 'none';
+            backButton.style.display = 'none';
+        }
+
+        // Функция переключения верификации пользователя
+        async function toggleVerification(username) {
+            try {
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const userData = data.record[username];
+                
+                if (!userData) {
+                    throw new Error('Пользователь не найден');
+                }
+
+                // Обновляем статус верификации
+                userData.authorized = !userData.authorized;
+                userData.lastUpdate = new Date().toISOString();
+
+                // Обновляем данные в API
+                const updateResponse = await fetch(window.API_CONFIG.API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': window.API_CONFIG.API_KEY
+                    },
+                    body: JSON.stringify(data.record)
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error(`Ошибка обновления: ${updateResponse.status}`);
+                }
+
+                // Обновляем кэш и интерфейс
+                usersCache = data.record;
+                showUserDetails(username);
+                showNotification(`Статус верификации пользователя ${username} ${userData.authorized ? 'включен' : 'выключен'}`);
+            } catch (error) {
+                console.error('Ошибка изменения статуса верификации:', error);
+                showNotification(`Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Загрузка пользователей при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadUsers);
+
+        // Периодическое обновление данных
+        setInterval(loadUsers, CACHE_DURATION);
+
+        // Функция для копирования в буфер обмена
+        async function copyToClipboard(text, label) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showNotification(`${label} скопирован`);
+                
+                // Найти кнопку, которая была нажата
+                const button = event.currentTarget;
+                const icon = button.querySelector('svg');
+                
+                // Заменить иконку на галочку
+                icon.innerHTML = `
+                    <path d="M20 6L9 17l-5-5"></path>
+                `;
+                
+                // Вернуть исходную иконку через 2 секунды
+                setTimeout(() => {
+                    icon.innerHTML = `
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    `;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
+        }
+
+        // Функция для показа уведомления
+        function showNotification(message) {
+            // Создаем контейнер для уведомлений, если его еще нет
+            let container = document.querySelector('.notification-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'notification-container';
+                document.body.appendChild(container);
+            }
+
+            // Создаем уведомление
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+
+            // Добавляем уведомление в контейнер
+            container.appendChild(notification);
+
+            // Запускаем анимацию появления
+            setTimeout(() => notification.classList.add('show'), 10);
+
+            // Удаляем уведомление через 3 секунды
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
     </script>
+
+    <style>
+        body {
+            background-color: #0a192f;
+            color: #ffffff;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .main-title {
+            color: #64ffda;
+            font-size: 2.5rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background-color: #1a1e2e;
+            border-radius: 12px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            color: #8892b0;
+            font-size: 1.1rem;
+            margin-top: 2rem;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-button {
+            background: transparent;
+            border: 1px solid var(--color-accent);
+            color: var(--color-accent);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-button:hover {
+            background: rgba(100, 255, 218, 0.1);
+            transform: translateX(-5px);
+        }
+
+        .users-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            margin-top: 2rem;
+        }
+
+        .user-card {
+            background-color: #1a1e2e;
+            border: 2px solid #64ffda;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(100, 255, 218, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.2);
+            border-color: #64ffda;
+            background-color: #232839;
+        }
+
+        .user-header {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(26, 30, 46, 0.95);
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        .user-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-title h3 {
+            color: #64ffda;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+        }
+
+        .status-badge {
+            background: rgba(100, 255, 218, 0.15);
+            color: #64ffda;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid rgba(100, 255, 218, 0.3);
+            text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+        }
+
+        .toggle-icon {
+            color: #64ffda;
+            transition: transform 0.3s ease;
+        }
+
+        .user-card:hover .toggle-icon {
+            transform: translateX(5px);
+        }
+
+        .user-details-container {
+            margin-top: 2rem;
+        }
+
+        .user-details-card {
+            background: var(--color-card);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.2s ease-out;
+        }
+
+        .details-content {
+            padding: 1.5rem 0;
+        }
+
+        .info-item {
+            margin: 1rem 0;
+            color: var(--color-text-alt);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(26, 30, 46, 0.5);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .info-item:hover {
+            background: rgba(26, 30, 46, 0.8);
+        }
+
+        .info-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-label {
+            color: var(--color-accent);
+            font-weight: 500;
+            min-width: 100px;
+        }
+
+        .user-actions {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            border-top: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        .action-button {
+            background: transparent;
+            border: 1px solid var(--color-accent);
+            color: var(--color-accent);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .action-button:hover {
+            background: rgba(100, 255, 218, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .action-button.deactivate {
+            border-color: var(--color-danger);
+            color: var(--color-danger);
+        }
+
+        .action-button.deactivate:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            background-color: rgba(255, 107, 107, 0.1);
+            border: 2px solid #ff6b6b;
+            border-radius: 12px;
+            color: #ff6b6b;
+            margin-top: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .error-icon {
+            color: var(--color-danger);
+            animation: pulse 2s infinite;
+        }
+
+        .error-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin: 1rem 0;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+        }
+
+        .retry-button {
+            background: transparent;
+            border: 1px solid var(--color-danger);
+            color: var(--color-danger);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .retry-button:hover {
+            background: rgba(255, 107, 107, 0.1);
+            transform: translateY(-2px);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .users-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-section {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .nav-button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+
+            .info-label {
+                min-width: auto;
+            }
+        }
+
+        /* Добавляем базовые переменные цветов если их нет */
+        :root {
+            --color-accent: #64ffda;
+            --color-card: #1a1e2e;
+            --color-card-hover: #232839;
+            --color-text: #ffffff;
+            --color-text-alt: #8892b0;
+            --color-danger: #ff6b6b;
+        }
+
+        /* Добавляем анимацию появления */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-card {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
 </body>
 </html>

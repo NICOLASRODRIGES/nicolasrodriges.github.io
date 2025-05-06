@@ -8,40 +8,49 @@
     <link href="style.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container mt-4">
-        <h1>Главная страница</h1>
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Пользователи</h5>
-                        <p class="card-text">Управление пользователями системы</p>
-                        <a href="users.html" class="btn btn-primary">Перейти</a>
-                    </div>
-                </div>
+    <div class="container">
+        <h1 class="main-title fade-in">Система управления</h1>
+        
+        <div class="menu-grid">
+            <div class="menu-item fade-in" style="animation-delay: 0.1s">
+                <h2>Пользователи</h2>
+                <p>Управление пользователями системы</p>
+                <a href="users.html" class="btn">Перейти</a>
             </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Архивы</h5>
-                        <p class="card-text">Управление архивами</p>
-                        <a href="zips.html" class="btn btn-primary">Перейти</a>
-                    </div>
-                </div>
+            
+            <div class="menu-item fade-in" style="animation-delay: 0.2s">
+                <h2>Авторизация</h2>
+                <p>Вход в систему управления</p>
+                <a href="auth.html" class="btn">Войти</a>
+            </div>
+            
+            <div class="menu-item fade-in" style="animation-delay: 0.3s">
+                <h2>Панель управления</h2>
+                <p>Управление системой</p>
+                <a href="admin.html" class="btn">Перейти</a>
+            </div>
+            
+            <div class="menu-item fade-in" style="animation-delay: 0.4s">
+                <h2>Архивы</h2>
+                <p>Управление архивами</p>
+                <a href="zips.html" class="btn">Перейти</a>
             </div>
         </div>
     </div>
 
-    <script src="js/config.js"></script>
-    <script src="js/auth.js"></script>
     <script>
-        // Check authentication when page loads
+        // Конфигурация API
+        window.API_CONFIG = {
+            API_URL: 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667',
+            API_KEY: '$2a$10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC'
+        };
+
+        // Анимация появления элементов
         document.addEventListener('DOMContentLoaded', () => {
-            const sessionToken = localStorage.getItem('sessionToken');
-            if (!sessionToken) {
-                window.location.href = 'login.html';
-                return;
-            }
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach((item, index) => {
+                item.style.animationDelay = `${index * 0.1}s`;
+            });
         });
     </script>
 </body>
