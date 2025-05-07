@@ -1,0 +1,49 @@
+{
+    "endpoints": {
+        "users": "https://api.jsonbin.io/v3/b/681a874e8960c979a594a392",
+        "roles": "https://api.jsonbin.io/v3/b/681aa1ff8960c979a594ae65",
+        "logs": "https://api.jsonbin.io/v3/b/681aa21a8a456b796698ede4",
+        "settings": "https://api.jsonbin.io/v3/b/681aa22e8561e97a500f1986",
+        "auth": "https://api.jsonbin.io/v3/b/681aa23e8a456b796698edf7",
+        "register": "https://api.jsonbin.io/v3/b/681aa25b8960c979a594ae8c",
+        "verify": "https://api.jsonbin.io/v3/b/681aa25b8960c979a594ae8c",
+        "reset": "https://api.jsonbin.io/v3/b/81aa2dc8a456b796698ee34"
+    },
+    "keys": {
+        "master": "$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662",
+        "read": "$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662",
+        "write": "$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662"
+    },
+    "security": {
+        "token_expiration": 3600,
+        "max_login_attempts": 5,
+        "lockout_duration": 900,
+        "require_2fa": true,
+        "password_policy": {
+            "min_length": 8,
+            "require_uppercase": true,
+            "require_lowercase": true,
+            "require_numbers": true,
+            "require_special": true,
+            "history_size": 5
+        },
+        "registration": {
+            "email_verification": true,
+            "phone_verification": false,
+            "approval_required": false,
+            "verification_code_length": 6,
+            "verification_code_expiry": 600
+        }
+    },
+    "email": {
+        "smtp_host": "smtp.example.com",
+        "smtp_port": 587,
+        "smtp_secure": true,
+        "from_address": "noreply@example.com",
+        "templates": {
+            "verification": "email_verification.html",
+            "reset_password": "reset_password.html",
+            "welcome": "welcome.html"
+        }
+    }
+} 

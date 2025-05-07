@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Восстановление пароля</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0a192f;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .recovery-container {
+            background: #1a1e2e;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #64ffda;
+        }
+
+        .recovery-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .recovery-title {
+            color: #64ffda;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .recovery-subtitle {
+            color: #8892b0;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            color: #64ffda;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            background: rgba(26, 30, 46, 0.5);
+            border: 1px solid #64ffda;
+            color: #ffffff;
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .form-control:focus {
+            background: rgba(26, 30, 46, 0.8);
+            border-color: #64ffda;
+            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
+            color: #ffffff;
+        }
+
+        .recovery-btn {
+            background: #64ffda;
+            color: #0a192f;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            width: 100%;
+            font-weight: 500;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .recovery-btn:hover {
+            background: #00ffbb;
+            transform: translateY(-2px);
+        }
+
+        .recovery-btn:disabled {
+            background: #4a5568;
+            transform: none;
+        }
+
+        .error-message {
+            color: #ff6363;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .success-message {
+            color: #64ffda;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .back-link {
+            color: #64ffda;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .back-link:hover {
+            color: #00ffbb;
+            text-decoration: underline;
+        }
+
+        .steps {
+            display: none;
+        }
+
+        .steps.active {
+            display: block;
+        }
+
+        .verification-code {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .code-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.5rem;
+            border: 1px solid #64ffda;
+            border-radius: 8px;
+            background: rgba(26, 30, 46, 0.5);
+            color: #ffffff;
+        }
+
+        .code-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="recovery-container">
+        <div class="recovery-header">
+            <h1 class="recovery-title">Восстановление пароля</h1>
+            <p class="recovery-subtitle">Введите данные для восстановления</p>
+        </div>
+
+        <!-- Шаг 1: Ввод имени пользователя -->
+        <div id="step1" class="steps active">
+            <div class="form-group">
+                <label for="username" class="form-label">Имя пользователя</label>
+                <input type="text" id="username" class="form-control" required>
+            </div>
+            <button onclick="verifyUsername()" class="recovery-btn">Продолжить</button>
+        </div>
+
+        <!-- Шаг 2: Подтверждение кода -->
+        <div id="step2" class="steps">
+            <div class="form-group">
+                <label class="form-label">Введите код подтверждения</label>
+                <p class="recovery-subtitle">Код был отправлен на вашу почту</p>
+                <div class="verification-code">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+                </div>
+            </div>
+            <button onclick="verifyCode()" class="recovery-btn">Подтвердить</button>
+        </div>
+
+        <!-- Шаг 3: Новый пароль -->
+        <div id="step3" class="steps">
+            <div class="form-group">
+                <label for="newPassword" class="form-label">Новый пароль</label>
+                <input type="password" id="newPassword" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword" class="form-label">Подтвердите пароль</label>
+                <input type="password" id="confirmPassword" class="form-control" required>
+            </div>
+            <button onclick="resetPassword()" class="recovery-btn">Сменить пароль</button>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <a href="login.html" class="back-link">Вернуться к входу</a>
+    </div>
+
+    <script>
+        // Загрузка конфигурации
+        let config = {
+            "endpoints": {
+                "users": "https://api.jsonbin.io/v3/b/681a874e8960c979a594a392",
+                "roles": "https://api.jsonbin.io/v3/b/681aa1ff8960c979a594ae65",
+                "logs": "https://api.jsonbin.io/v3/b/681aa21a8a456b796698ede4",
+                "settings": "https://api.jsonbin.io/v3/b/681aa22e8561e97a500f1986",
+                "auth": "https://api.jsonbin.io/v3/b/681aa23e8a456b796698edf7",
+                "register": "https://api.jsonbin.io/v3/b/681aa25b8960c979a594ae8c",
+                "verify": "https://api.jsonbin.io/v3/b/681aa25b8960c979a594ae8c",
+                "reset": "https://api.jsonbin.io/v3/b/81aa2dc8a456b796698ee34"
+            },
+            "keys": {
+                "master": "$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662",
+                "read": "$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662",
+                "write": "$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662"
+            },
+            "security": {
+                "token_expiration": 3600,
+                "max_login_attempts": 5,
+                "lockout_duration": 900,
+                "require_2fa": true,
+                "password_policy": {
+                    "min_length": 8,
+                    "require_uppercase": true,
+                    "require_lowercase": true,
+                    "require_numbers": true,
+                    "require_special": true,
+                    "history_size": 5
+                }
+            }
+        };
+        let recoveryUsername = '';
+        let recoveryCode = '';
+
+        async function loadConfig() {
+            try {
+                // Проверяем соединение с сервером
+                const response = await fetch(config.endpoints.users, {
+                    headers: { 
+                        'X-Master-Key': config.keys.master,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка соединения с сервером: ${response.status}`);
+                }
+
+                console.log('Конфигурация загружена успешно');
+            } catch (error) {
+                console.error('Ошибка проверки соединения:', error);
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = 'Ошибка подключения к серверу. Пожалуйста, попробуйте позже.';
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Функция проверки имени пользователя
+        async function verifyUsername() {
+            const username = document.getElementById('username').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            try {
+                const response = await fetch(config.endpoints.users, {
+                    headers: { 'X-Master-Key': config.keys.master }
+                });
+                
+                const data = await response.json();
+                const adminUsers = data.record.adminUsers || {};
+
+                if (!adminUsers[username]) {
+                    throw new Error('Пользователь не найден');
+                }
+
+                // Генерируем код восстановления
+                recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+                recoveryUsername = username;
+                
+                // В реальном приложении здесь был бы код отправки email
+                console.log('Код восстановления:', recoveryCode);
+
+                // Переходим к следующему шагу
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Функция проверки кода
+        function verifyCode() {
+            const inputs = document.querySelectorAll('.code-input');
+            const enteredCode = Array.from(inputs).map(input => input.value).join('');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            if (enteredCode === recoveryCode) {
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step3').classList.add('active');
+            } else {
+                errorMessage.textContent = 'Неверный код подтверждения';
+                errorMessage.style.display = 'block';
+                
+                inputs.forEach(input => {
+                    input.value = '';
+                });
+                inputs[0].focus();
+            }
+        }
+
+        // Функция сброса пароля
+        async function resetPassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            try {
+                if (newPassword !== confirmPassword) {
+                    throw new Error('Пароли не совпадают');
+                }
+
+                if (newPassword.length < 8) {
+                    throw new Error('Пароль должен содержать минимум 8 символов');
+                }
+
+                const response = await fetch(config.endpoints.users, {
+                    headers: { 'X-Master-Key': config.keys.master }
+                });
+                
+                const data = await response.json();
+                const record = data.record;
+                
+                if (!record.adminUsers) {
+                    record.adminUsers = {};
+                }
+
+                // Обновляем пароль
+                record.adminUsers[recoveryUsername] = {
+                    ...record.adminUsers[recoveryUsername],
+                    password: newPassword,
+                    lastPasswordReset: new Date().toISOString()
+                };
+
+                const updateResponse = await fetch(config.endpoints.users, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': config.keys.master
+                    },
+                    body: JSON.stringify(record)
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error('Ошибка обновления пароля');
+                }
+
+                successMessage.textContent = 'Пароль успешно изменен!';
+                successMessage.style.display = 'block';
+
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Автоматический переход между полями ввода кода
+        document.querySelectorAll('.code-input').forEach((input, index) => {
+            input.addEventListener('input', function() {
+                if (this.value.length === 1) {
+                    const nextInput = document.querySelectorAll('.code-input')[index + 1];
+                    if (nextInput) nextInput.focus();
+                }
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && !this.value) {
+                    const prevInput = document.querySelectorAll('.code-input')[index - 1];
+                    if (prevInput) prevInput.focus();
+                }
+            });
+        });
+
+        // Загрузка конфигурации при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadConfig);
+    </script>
+</body>
+</html> 

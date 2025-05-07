@@ -197,6 +197,11 @@
             API_KEY: '$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662'
         };
 
+        // Вспомогательная функция для проверки авторизации пользователя
+        function isUserAuthorized(username, data) {
+            return data.authorizedUsers && data.authorizedUsers.includes(username);
+        }
+
         // Вспомогательная функция для обновления данных пользователя
         async function UpdateBinWithUser(username, userData) {
             try {
@@ -210,7 +215,7 @@
                 }
                 
                 const data = await response.json();
-                if (!data.record || !data.record.users) {
+                if (!data.record) {
                     throw new Error('Неверный формат данных');
                 }
                 
@@ -237,7 +242,7 @@
                 }
                 
                 // Обновляем кэш
-                usersCache = users;
+                usersCache = data.record;
                 lastFetchTime = Date.now();
                 
                 return true;
@@ -270,8 +275,17 @@
                 usersList.innerHTML = '';
                 
                 // Получаем всех пользователей из основной таблицы
-                Object.entries(data.record).forEach(([username, userData]) => {
-                    if (userData && typeof userData.authorized !== 'undefined') {
+                if (data.record.users) {
+                    // Сортируем пользователей: сначала авторизованные
+                    const sortedUsers = Object.entries(data.record.users).sort(([usernameA], [usernameB]) => {
+                        const isAuthorizedA = isUserAuthorized(usernameA, data.record);
+                        const isAuthorizedB = isUserAuthorized(usernameB, data.record);
+                        if (isAuthorizedA === isAuthorizedB) return 0;
+                        return isAuthorizedA ? -1 : 1;
+                    });
+
+                    sortedUsers.forEach(([username, userData]) => {
+                        const isAuthorized = isUserAuthorized(username, data.record);
                         const userCard = document.createElement('div');
                         userCard.className = 'user-card';
                         
@@ -279,7 +293,7 @@
                             <div class="user-header" onclick="showUserDetails('${username}')">
                                 <div class="user-title">
                                     <h3>${username}</h3>
-                                    ${userData.authorized ? '<span class="status-badge">Верифицирован</span>' : ''}
+                                    ${isAuthorized ? '<span class="status-badge">Верифицирован</span>' : ''}
                                 </div>
                                 <div class="toggle-icon">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -290,8 +304,8 @@
                         `;
                         
                         usersList.appendChild(userCard);
-                    }
-                });
+                    });
+                }
 
                 if (usersList.children.length === 0) {
                     usersList.innerHTML = '<div class="empty-state">Список пользователей пуст</div>';
@@ -331,8 +345,9 @@
 
         // Показать детали пользователя
         function showUserDetails(username) {
-            const user = usersCache[username];
-            if (!user) return;
+            const userData = usersCache.users[username];
+            const isAuthorized = isUserAuthorized(username, usersCache);
+            if (!userData) return;
 
             const userDetails = document.getElementById('userDetails');
             const usersList = document.getElementById('usersList');
@@ -340,12 +355,12 @@
             const mainTitle = document.querySelector('.main-title');
 
             const userInfo = [];
-            if (user.pc_username) userInfo.push(`
+            if (userData.pc_username) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">Username:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.pc_username}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.pc_username}', 'Username')">
+                        <span class="info-value">${userData.pc_username}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.pc_username}', 'Username')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
                                 <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
@@ -353,12 +368,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.computer_name) userInfo.push(`
+            if (userData.computer_name) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">PC:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.computer_name}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.computer_name}', 'PC')">
+                        <span class="info-value">${userData.computer_name}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.computer_name}', 'PC')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
                                 <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
@@ -366,12 +381,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.login) userInfo.push(`
+            if (userData.login) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">Login:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.login}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.login}', 'Login')">
+                        <span class="info-value">${userData.login}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.login}', 'Login')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
                                 <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
@@ -379,12 +394,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.local_ip) userInfo.push(`
+            if (userData.local_ip) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">Local IP:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.local_ip}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.local_ip}', 'Local IP')">
+                        <span class="info-value">${userData.local_ip}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.local_ip}', 'Local IP')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
                                 <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
@@ -392,12 +407,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.public_ip) userInfo.push(`
+            if (userData.public_ip) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">Public IP:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.public_ip}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.public_ip}', 'Public IP')">
+                        <span class="info-value">${userData.public_ip}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.public_ip}', 'Public IP')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"></path>
                                 <path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"></path>
@@ -405,12 +420,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.mac_addr) userInfo.push(`
+            if (userData.mac_addr) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">MAC:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.mac_addr}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.mac_addr}', 'MAC Address')">
+                        <span class="info-value">${userData.mac_addr}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.mac_addr}', 'MAC Address')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -418,12 +433,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.hwid) userInfo.push(`
+            if (userData.hwid) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">Machine Guid:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.machine_guid}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.machine_guid}', 'Machine Guid')">
+                        <span class="info-value">${userData.machine_guid}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.machine_guid}', 'Machine Guid')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -431,12 +446,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.hwid) userInfo.push(`
+            if (userData.hwid) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">HWID:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.hwid}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.hwid}', 'HWID')">
+                        <span class="info-value">${userData.hwid}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.hwid}', 'HWID')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -444,12 +459,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.hwid) userInfo.push(`
+            if (userData.hwid) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">SSID:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.ssid}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.ssid}', 'SSID')">
+                        <span class="info-value">${userData.ssid}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.ssid}', 'SSID')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -457,12 +472,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.serial) userInfo.push(`
+            if (userData.serial) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">Serial:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.serial}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.serial}', 'Serial')">
+                        <span class="info-value">${userData.serial}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.serial}', 'Serial')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -470,12 +485,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.product_id) userInfo.push(`
+            if (userData.product_id) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">Product ID:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.product_id}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.product_id}', 'Product ID')">
+                        <span class="info-value">${userData.product_id}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.product_id}', 'Product ID')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -483,12 +498,12 @@
                         </button>
                     </div>
                 </div>`);
-            if (user.bios_release) userInfo.push(`
+            if (userData.bios_release) userInfo.push(`
                 <div class="info-item">
                     <span class="info-label">BIOS:</span>
                     <div class="info-content">
-                        <span class="info-value">${user.bios_release}</span>
-                        <button class="copy-button" onclick="copyToClipboard('${user.bios_release}', 'BIOS')">
+                        <span class="info-value">${userData.bios_release}</span>
+                        <button class="copy-button" onclick="copyToClipboard('${userData.bios_release}', 'BIOS')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -502,17 +517,11 @@
                     <div class="user-header">
                         <div class="user-title">
                             <h2>${username}</h2>
-                            ${user.authorized ? '<span class="status-badge">Верифицирован</span>' : ''}
+                            ${isAuthorized ? '<span class="status-badge">Верифицирован</span>' : ''}
                         </div>
                     </div>
                     <div class="details-content">
                         ${userInfo.join('')}
-                    </div>
-                    <div class="user-actions">
-                        <button class="action-button ${user.authorized ? 'deactivate' : 'vereficate'}" 
-                                onclick="toggleVerification('${username}')">
-                            <span class="button-text">${user.authorized ? 'Снять верификацию' : 'Верифицировать'}</span>
-                        </button>
                     </div>
                 </div>
             `;
@@ -548,15 +557,22 @@
                 }
                 
                 const data = await response.json();
-                const userData = data.record[username];
+                const record = data.record;
                 
-                if (!userData) {
-                    throw new Error('Пользователь не найден');
+                // Инициализируем массив authorizedUsers, если он не существует
+                if (!record.authorizedUsers) {
+                    record.authorizedUsers = [];
                 }
 
-                // Обновляем статус верификации
-                userData.authorized = !userData.authorized;
-                userData.lastUpdate = new Date().toISOString();
+                const isCurrentlyAuthorized = record.authorizedUsers.includes(username);
+                
+                if (isCurrentlyAuthorized) {
+                    // Удаляем пользователя из списка авторизованных
+                    record.authorizedUsers = record.authorizedUsers.filter(user => user !== username);
+                } else {
+                    // Добавляем пользователя в список авторизованных
+                    record.authorizedUsers.push(username);
+                }
 
                 // Обновляем данные в API
                 const updateResponse = await fetch(window.API_CONFIG.API_URL, {
@@ -565,7 +581,7 @@
                         'Content-Type': 'application/json',
                         'X-Master-Key': window.API_CONFIG.API_KEY
                     },
-                    body: JSON.stringify(data.record)
+                    body: JSON.stringify(record)
                 });
 
                 if (!updateResponse.ok) {
@@ -573,9 +589,15 @@
                 }
 
                 // Обновляем кэш и интерфейс
-                usersCache = data.record;
+                usersCache = record;
+                
+                // Перезагружаем список пользователей для обновления всего интерфейса
+                await loadUsers();
+                
+                // Показываем обновленные детали пользователя
                 showUserDetails(username);
-                showNotification(`Статус верификации пользователя ${username} ${userData.authorized ? 'включен' : 'выключен'}`);
+                
+                showNotification(`Статус верификации пользователя ${username} ${!isCurrentlyAuthorized ? 'включен' : 'выключен'}`);
             } catch (error) {
                 console.error('Ошибка изменения статуса верификации:', error);
                 showNotification(`Ошибка: ${error.message}`, 'error');

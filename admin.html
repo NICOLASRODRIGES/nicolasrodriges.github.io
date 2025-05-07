@@ -3,139 +3,1117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель управления</title>
+    <title>Панель администратора</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0a192f;
+            color: #ffffff;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .main-title {
+            color: #64ffda;
+            font-size: 2.5rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .nav-tabs {
+            border-bottom: 1px solid #64ffda;
+            margin-bottom: 2rem;
+        }
+
+        .nav-tabs .nav-link {
+            color: #8892b0;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: #64ffda;
+            border: none;
+            background: rgba(100, 255, 218, 0.1);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #64ffda;
+            background-color: rgba(100, 255, 218, 0.1);
+            border: none;
+            border-bottom: 2px solid #64ffda;
+        }
+
+        .users-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            margin-top: 2rem;
+        }
+
+        .user-card {
+            background-color: #1a1e2e;
+            border: 2px solid #64ffda;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(100, 255, 218, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.2);
+        }
+
+        .user-header {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(26, 30, 46, 0.95);
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        .user-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-title h3 {
+            color: #64ffda;
+            font-size: 1.25rem;
+            margin: 0;
+        }
+
+        .status-badge {
+            background: rgba(100, 255, 218, 0.15);
+            color: #64ffda;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .user-details {
+            padding: 1.5rem;
+        }
+
+        .info-item {
+            margin: 0.7rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-label {
+            color: #00ffbb;
+            font-weight: 500;
+            width: 140px;
+        }
+
+        .info-value {
+            color: #ffffff;
+        }
+
+        .admin-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .admin-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .verify-btn {
+            background: rgba(100, 255, 218, 0.1);
+            border: 1px solid #64ffda;
+            color: #64ffda;
+        }
+
+        .verify-btn:hover {
+            background: rgba(100, 255, 218, 0.2);
+        }
+
+        .delete-btn {
+            background: rgba(255, 99, 99, 0.1);
+            border: 1px solid #ff6363;
+            color: #ff6363;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 99, 99, 0.2);
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem;
+            border-radius: 8px;
+            background: rgba(100, 255, 218, 0.9);
+            color: #0a192f;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .site-settings {
+            background: #1a1e2e;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .setting-group {
+            margin-bottom: 2rem;
+        }
+
+        .setting-title {
+            color: #64ffda;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .setting-input {
+            background: rgba(26, 30, 46, 0.5);
+            border: 1px solid #64ffda;
+            color: #ffffff;
+            padding: 0.5rem;
+            border-radius: 4px;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.3);
+        }
+
+        .save-settings {
+            background: #64ffda;
+            color: #0a192f;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-settings:hover {
+            background: #00ffbb;
+            transform: translateY(-2px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(26, 30, 46, 0.5);
+            border: 1px solid #64ffda;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: rgba(26, 30, 46, 0.8);
+        }
+
+        .stat-value {
+            color: #64ffda;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #8892b0;
+            font-size: 1rem;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            margin-bottom: 1rem;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .filter-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #8892b0;
+            cursor: pointer;
+        }
+
+        .filter-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #64ffda;
+        }
+
+        .search-results {
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .search-results::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .search-results::-webkit-scrollbar-track {
+            background: rgba(26, 30, 46, 0.5);
+            border-radius: 4px;
+        }
+
+        .search-results::-webkit-scrollbar-thumb {
+            background: #64ffda;
+            border-radius: 4px;
+        }
+
+        .users-table-container {
+            background: #1a1e2e;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            font-weight: 500;
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 2px solid #64ffda;
+        }
+
+        .users-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+            color: #ffffff;
+        }
+
+        .users-table tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .users-table tr:hover {
+            background: rgba(100, 255, 218, 0.05);
+        }
+
+        .table-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .badge-verified {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            border: 1px solid #64ffda;
+        }
+
+        .badge-unverified {
+            background: rgba(255, 99, 99, 0.1);
+            color: #ff6363;
+            border: 1px solid #ff6363;
+        }
+
+        .table-empty {
+            text-align: center;
+            padding: 2rem;
+            color: #8892b0;
+            font-size: 1.1rem;
+        }
+
+        .user-management-panel {
+            background: #1a1e2e;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 1px solid #64ffda;
+            display: none;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .panel-title {
+            color: #64ffda;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .close-panel {
+            background: transparent;
+            border: 1px solid #64ffda;
+            color: #64ffda;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .close-panel:hover {
+            background: rgba(100, 255, 218, 0.1);
+        }
+
+        .panel-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .info-section {
+            background: rgba(26, 30, 46, 0.5);
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .section-title {
+            color: #64ffda;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            margin: 0.7rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-label {
+            color: #8892b0;
+            width: 140px;
+        }
+
+        .info-value {
+            color: #ffffff;
+        }
+
+        .panel-actions {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .panel-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .verify-btn {
+            background: rgba(100, 255, 218, 0.1);
+            border: 1px solid #64ffda;
+            color: #64ffda;
+        }
+
+        .verify-btn:hover {
+            background: rgba(100, 255, 218, 0.2);
+        }
+
+        .delete-btn {
+            background: rgba(255, 99, 99, 0.1);
+            border: 1px solid #ff6363;
+            color: #ff6363;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 99, 99, 0.2);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="main-title fade-in">Панель управления</h1>
-        <button onclick="window.location.href='index.html'" class="btn btn-secondary mb-3">На главную</button>
-        <button onclick="logout()" class="btn btn-danger mb-3">Выйти</button>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card fade-in" style="animation-delay: 0.2s">
-                    <div class="card-body">
-                        <h5 class="card-title">Добавить нового пользователя</h5>
-                        <form id="userForm" onsubmit="event.preventDefault(); addUser();">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Имя</label>
-                                <input type="text" class="form-control" id="name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="phone" class="form-label">Телефон</label>
-                                <input type="tel" class="form-control" id="phone" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="zipUrl" class="form-label">URL ZIP-архива</label>
-                                <input type="url" class="form-control" id="zipUrl">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Добавить</button>
-                        </form>
-                    </div>
+        <div class="header-section">
+            <h1 class="main-title">Панель администратора</h1>
+            <button onclick="window.location.href='index.html'" class="admin-btn verify-btn">
+                На главную
+            </button>
+        </div>
+
+        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                    Список пользователей
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="site-tab" data-bs-toggle="tab" data-bs-target="#site" type="button" role="tab">
+                    Панель управления пользователями
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="adminTabContent">
+            <div class="tab-pane fade show active" id="users" role="tabpanel">
+                <div class="users-table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Пользователь</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersList">
+                            <!-- Список пользователей будет добавлен здесь -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="userManagementPanel" class="user-management-panel">
+                    <!-- Панель управления пользователем будет добавлена здесь -->
                 </div>
             </div>
-            
-            <div class="col-md-6">
-                <div class="card fade-in" style="animation-delay: 0.3s">
-                    <div class="card-body">
-                        <h5 class="card-title">Статистика</h5>
-                        <div id="stats">
-                            <p>Всего пользователей: <span id="totalUsers">0</span></p>
-                            <p>Авторизованных: <span id="authorizedUsers">0</span></p>
-                            <p>С ZIP-архивами: <span id="usersWithZip">0</span></p>
+            <div class="tab-pane fade" id="site" role="tabpanel">
+                <div class="site-settings">
+                    <div class="setting-group">
+                        <h3 class="setting-title">Статистика пользователей</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="totalUsers">0</div>
+                                <div class="stat-label">Всего пользователей</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="verifiedUsers">0</div>
+                                <div class="stat-label">Верифицированных</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="unverifiedUsers">0</div>
+                                <div class="stat-label">Неверифицированных</div>
+                            </div>
                         </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3 class="setting-title">Массовые действия</h3>
+                        <div class="bulk-actions">
+                            <button onclick="verifyAllUsers()" class="admin-btn verify-btn">
+                                Верифицировать всех
+                            </button>
+                            <button onclick="unverifyAllUsers()" class="admin-btn delete-btn">
+                                Снять верификацию со всех
+                            </button>
+                            <button onclick="deleteUnverifiedUsers()" class="admin-btn delete-btn">
+                                Удалить неверифицированных
+                            </button>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3 class="setting-title">Поиск пользователей</h3>
+                        <div class="search-box">
+                            <input type="text" id="userSearch" class="setting-input" placeholder="Поиск по имени пользователя...">
+                            <div class="filter-options">
+                                <label class="filter-label">
+                                    <input type="checkbox" id="filterVerified" checked>
+                                    Верифицированные
+                                </label>
+                                <label class="filter-label">
+                                    <input type="checkbox" id="filterUnverified" checked>
+                                    Неверифицированные
+                                </label>
+                            </div>
+                        </div>
+                        <div id="searchResults" class="search-results"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div id="notification" class="notification"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Конфигурация API
         window.API_CONFIG = {
-            API_URL: 'https://api.jsonbin.io/v3/b/6816ae838a456b7966972667',
-            API_KEY: '$2a10$30DUmftOdCIJqvLSFHqLwePQV9ERhhvW1NFWDEEPor5.F2RoT4vfC'
+            API_URL: 'https://api.jsonbin.io/v3/b/681a874e8960c979a594a392',
+            API_KEY: '$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662'
         };
 
-        // Проверка авторизации
-        function checkAuth() {
-            const adminUsername = localStorage.getItem('adminUsername');
-            if (!adminUsername) {
-                window.location.href = 'auth.html';
-                return;
-            }
+        // Кэш для данных
+        let usersCache = null;
+        let lastFetchTime = 0;
+        const CACHE_DURATION = 30000; // 30 секунд
+
+        // Функция для проверки авторизации пользователя
+        function isUserAuthorized(username, data) {
+            return data.authorizedUsers && data.authorizedUsers.includes(username);
         }
 
-        // Выход из системы
-        function logout() {
-            localStorage.removeItem('adminUsername');
-            window.location.href = 'auth.html';
-        }
-
-        // Добавление пользователя
-        async function addUser() {
+        // Загрузка пользователей
+        async function loadUsers() {
             try {
                 const response = await fetch(window.API_CONFIG.API_URL, {
                     headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
-                const users = data.record.users || [];
+                const usersList = document.getElementById('usersList');
+                usersList.innerHTML = '';
                 
-                const newUser = {
-                    name: document.getElementById('name').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value,
-                    zipUrl: document.getElementById('zipUrl').value,
-                    authorized: false,
-                    createdAt: new Date().toISOString()
-                };
+                if (data.record.users) {
+                    Object.entries(data.record.users).forEach(([username, userData]) => {
+                        const isAuthorized = isUserAuthorized(username, data.record);
+                        const row = document.createElement('tr');
+                        row.onclick = () => showUserManagementPanel(username, userData, isAuthorized);
+                        
+                        row.innerHTML = `
+                            <td>${username}</td>
+                            <td>
+                                <span class="table-badge ${isAuthorized ? 'badge-verified' : 'badge-unverified'}">
+                                    ${isAuthorized ? 'Верифицирован' : 'Не верифицирован'}
+                                </span>
+                            </td>
+                        `;
+                        
+                        usersList.appendChild(row);
+                    });
+                }
+
+                if (!usersList.children.length) {
+                    usersList.innerHTML = `
+                        <tr>
+                            <td colspan="2" class="table-empty">Список пользователей пуст</td>
+                        </tr>
+                    `;
+                }
+
+                usersCache = data.record;
+                lastFetchTime = Date.now();
+                updateUserStats();
+            } catch (error) {
+                console.error('Ошибка загрузки пользователей:', error);
+                showNotification('Ошибка загрузки пользователей', 'error');
+                usersList.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="table-empty">Ошибка загрузки пользователей</td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Функция отображения панели управления пользователем
+        function showUserManagementPanel(username, userData, isAuthorized) {
+            const panel = document.getElementById('userManagementPanel');
+            
+            panel.innerHTML = `
+                <div class="panel-header">
+                    <h2 class="panel-title">Управление пользователем: ${username}</h2>
+                    <button class="close-panel" onclick="closeUserManagementPanel()">Закрыть</button>
+                </div>
+                <div class="panel-content">
+                    <div class="info-section">
+                        <h3 class="section-title">Информация о пользователе</h3>
+                        <div class="info-item">
+                            <span class="info-label">Username PC:</span>
+                            <span class="info-value">${userData.pc_username || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Имя компьютера:</span>
+                            <span class="info-value">${userData.computer_name || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Статус:</span>
+                            <span class="info-value">
+                                <span class="table-badge ${isAuthorized ? 'badge-verified' : 'badge-unverified'}">
+                                    ${isAuthorized ? 'Верифицирован' : 'Не верифицирован'}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Последнее обновление:</span>
+                            <span class="info-value">
+                                ${userData.lastUpdate ? new Date(userData.lastUpdate).toLocaleString() : '-'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-section">
+                        <h3 class="section-title">Системная информация</h3>
+                        ${userData.os_version ? `
+                            <div class="info-item">
+                                <span class="info-label">Версия ОС:</span>
+                                <span class="info-value">${userData.os_version}</span>
+                            </div>
+                        ` : ''}
+                        ${userData.bios_release ? `
+                            <div class="info-item">
+                                <span class="info-label">BIOS:</span>
+                                <span class="info-value">${userData.bios_release}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="panel-actions">
+                    <button onclick="toggleVerification('${username}')" class="panel-btn verify-btn">
+                        ${isAuthorized ? 'Снять верификацию' : 'Верифицировать'}
+                    </button>
+                    <button onclick="deleteUser('${username}')" class="panel-btn delete-btn">
+                        Удалить пользователя
+                    </button>
+                </div>
+            `;
+            
+            panel.style.display = 'block';
+        }
+
+        // Функция закрытия панели управления пользователем
+        function closeUserManagementPanel() {
+            const panel = document.getElementById('userManagementPanel');
+            panel.style.display = 'none';
+        }
+
+        // Модифицируем функции управления пользователями
+        async function toggleVerification(username) {
+            try {
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+                });
                 
-                users.push(newUser);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
-                await fetch(window.API_CONFIG.API_URL, {
+                const data = await response.json();
+                const record = data.record;
+                
+                if (!record.authorizedUsers) {
+                    record.authorizedUsers = [];
+                }
+
+                const isCurrentlyAuthorized = record.authorizedUsers.includes(username);
+                
+                if (isCurrentlyAuthorized) {
+                    record.authorizedUsers = record.authorizedUsers.filter(user => user !== username);
+                } else {
+                    record.authorizedUsers.push(username);
+                }
+
+                const updateResponse = await fetch(window.API_CONFIG.API_URL, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Master-Key': window.API_CONFIG.API_KEY
                     },
-                    body: JSON.stringify({ ...data.record, users })
+                    body: JSON.stringify(record)
                 });
+
+                if (!updateResponse.ok) {
+                    throw new Error(`Ошибка обновления: ${updateResponse.status}`);
+                }
+
+                usersCache = record;
+                await loadUsers();
+                closeUserManagementPanel();
                 
-                document.getElementById('userForm').reset();
-                updateStats();
+                showNotification(`Статус верификации пользователя ${username} ${!isCurrentlyAuthorized ? 'включен' : 'выключен'}`);
             } catch (error) {
-                console.error('Ошибка добавления пользователя:', error);
+                console.error('Ошибка изменения статуса верификации:', error);
+                showNotification('Ошибка изменения статуса верификации', 'error');
             }
         }
 
-        // Обновление статистики
-        async function updateStats() {
+        async function deleteUser(username) {
+            if (!confirm(`Вы уверены, что хотите удалить пользователя ${username}?`)) {
+                return;
+            }
+
             try {
                 const response = await fetch(window.API_CONFIG.API_URL, {
                     headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
                 });
-                const data = await response.json();
-                const users = data.record.users || [];
                 
-                document.getElementById('totalUsers').textContent = users.length;
-                document.getElementById('authorizedUsers').textContent = users.filter(u => u.authorized).length;
-                document.getElementById('usersWithZip').textContent = users.filter(u => u.zipUrl).length;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const record = data.record;
+                
+                if (record.users && record.users[username]) {
+                    delete record.users[username];
+                }
+                
+                if (record.authorizedUsers) {
+                    record.authorizedUsers = record.authorizedUsers.filter(user => user !== username);
+                }
+
+                const updateResponse = await fetch(window.API_CONFIG.API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': window.API_CONFIG.API_KEY
+                    },
+                    body: JSON.stringify(record)
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error(`Ошибка удаления: ${updateResponse.status}`);
+                }
+
+                usersCache = record;
+                await loadUsers();
+                closeUserManagementPanel();
+                
+                showNotification(`Пользователь ${username} успешно удален`);
             } catch (error) {
-                console.error('Ошибка обновления статистики:', error);
+                console.error('Ошибка удаления пользователя:', error);
+                showNotification('Ошибка удаления пользователя', 'error');
             }
         }
 
-        // Инициализация
+        // Функция сохранения настроек сайта
+        async function saveSiteSettings() {
+            try {
+                const siteName = document.getElementById('siteName').value;
+                const siteDescription = document.getElementById('siteDescription').value;
+                const apiUrl = document.getElementById('apiUrl').value;
+                const apiKey = document.getElementById('apiKey').value;
+
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const record = data.record;
+
+                // Добавляем или обновляем настройки сайта
+                record.siteSettings = {
+                    siteName,
+                    siteDescription,
+                    apiUrl,
+                    apiKey: apiKey ? apiKey : record.siteSettings?.apiKey
+                };
+
+                const updateResponse = await fetch(window.API_CONFIG.API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': window.API_CONFIG.API_KEY
+                    },
+                    body: JSON.stringify(record)
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error(`Ошибка сохранения: ${updateResponse.status}`);
+                }
+
+                showNotification('Настройки сайта успешно сохранены');
+            } catch (error) {
+                console.error('Ошибка сохранения настроек:', error);
+                showNotification('Ошибка сохранения настроек', 'error');
+            }
+        }
+
+        // Функция отображения уведомлений
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            notification.style.background = type === 'success' ? 'rgba(100, 255, 218, 0.9)' : 'rgba(255, 99, 99, 0.9)';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Загрузка пользователей при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            updateStats();
+            loadUsers();
+            
+            // Загрузка сохраненных настроек сайта
+            fetch(window.API_CONFIG.API_URL, {
+                headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.record.siteSettings) {
+                    document.getElementById('siteName').value = data.record.siteSettings.siteName || '';
+                    document.getElementById('siteDescription').value = data.record.siteSettings.siteDescription || '';
+                    document.getElementById('apiUrl').value = data.record.siteSettings.apiUrl || '';
+                }
+            })
+            .catch(error => console.error('Ошибка загрузки настроек:', error));
         });
+
+        // Периодическое обновление данных
+        setInterval(loadUsers, CACHE_DURATION);
+
+        // Функции для массовых действий
+        async function verifyAllUsers() {
+            if (!confirm('Вы уверены, что хотите верифицировать всех пользователей?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+                });
+                
+                const data = await response.json();
+                const record = data.record;
+                
+                // Получаем всех пользователей
+                const allUsers = Object.keys(record.users || {});
+                
+                // Устанавливаем всех пользователей как верифицированных
+                record.authorizedUsers = [...new Set([...(record.authorizedUsers || []), ...allUsers])];
+
+                const updateResponse = await fetch(window.API_CONFIG.API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': window.API_CONFIG.API_KEY
+                    },
+                    body: JSON.stringify(record)
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error('Ошибка обновления данных');
+                }
+
+                await loadUsers();
+                updateUserStats();
+                showNotification('Все пользователи верифицированы');
+            } catch (error) {
+                console.error('Ошибка верификации пользователей:', error);
+                showNotification('Ошибка верификации пользователей', 'error');
+            }
+        }
+
+        async function unverifyAllUsers() {
+            if (!confirm('Вы уверены, что хотите снять верификацию со всех пользователей?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+                });
+                
+                const data = await response.json();
+                const record = data.record;
+                
+                // Очищаем список верифицированных пользователей
+                record.authorizedUsers = [];
+
+                const updateResponse = await fetch(window.API_CONFIG.API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': window.API_CONFIG.API_KEY
+                    },
+                    body: JSON.stringify(record)
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error('Ошибка обновления данных');
+                }
+
+                await loadUsers();
+                updateUserStats();
+                showNotification('Верификация снята со всех пользователей');
+            } catch (error) {
+                console.error('Ошибка снятия верификации:', error);
+                showNotification('Ошибка снятия верификации', 'error');
+            }
+        }
+
+        async function deleteUnverifiedUsers() {
+            if (!confirm('Вы уверены, что хотите удалить всех неверифицированных пользователей?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+                });
+                
+                const data = await response.json();
+                const record = data.record;
+                
+                const authorizedUsers = record.authorizedUsers || [];
+                const users = record.users || {};
+
+                // Удаляем всех неверифицированных пользователей
+                Object.keys(users).forEach(username => {
+                    if (!authorizedUsers.includes(username)) {
+                        delete users[username];
+                    }
+                });
+
+                record.users = users;
+
+                const updateResponse = await fetch(window.API_CONFIG.API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': window.API_CONFIG.API_KEY
+                    },
+                    body: JSON.stringify(record)
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error('Ошибка обновления данных');
+                }
+
+                await loadUsers();
+                updateUserStats();
+                showNotification('Неверифицированные пользователи удалены');
+            } catch (error) {
+                console.error('Ошибка удаления пользователей:', error);
+                showNotification('Ошибка удаления пользователей', 'error');
+            }
+        }
+
+        // Функция обновления статистики
+        function updateUserStats() {
+            const users = usersCache?.users || {};
+            const authorizedUsers = usersCache?.authorizedUsers || [];
+            
+            const totalUsers = Object.keys(users).length;
+            const verifiedUsers = authorizedUsers.length;
+            const unverifiedUsers = totalUsers - verifiedUsers;
+
+            document.getElementById('totalUsers').textContent = totalUsers;
+            document.getElementById('verifiedUsers').textContent = verifiedUsers;
+            document.getElementById('unverifiedUsers').textContent = unverifiedUsers;
+        }
+
+        // Функция поиска пользователей
+        function searchUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const showVerified = document.getElementById('filterVerified').checked;
+            const showUnverified = document.getElementById('filterUnverified').checked;
+            const searchResults = document.getElementById('searchResults');
+            
+            const users = usersCache?.users || {};
+            const authorizedUsers = usersCache?.authorizedUsers || [];
+
+            searchResults.innerHTML = '';
+
+            Object.entries(users).forEach(([username, userData]) => {
+                const isVerified = authorizedUsers.includes(username);
+                
+                // Проверяем фильтры
+                if ((!showVerified && isVerified) || (!showUnverified && !isVerified)) {
+                    return;
+                }
+
+                // Проверяем поисковый запрос
+                if (username.toLowerCase().includes(searchTerm)) {
+                    const userCard = document.createElement('div');
+                    userCard.className = 'user-card';
+                    userCard.innerHTML = `
+                        <div class="user-header">
+                            <div class="user-title">
+                                <h3>${username}</h3>
+                                ${isVerified ? '<span class="status-badge">Верифицирован</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="user-details">
+                            ${userData.pc_username ? `
+                                <div class="info-item">
+                                    <span class="info-label">Username:</span>
+                                    <span class="info-value">${userData.pc_username}</span>
+                                </div>
+                            ` : ''}
+                            ${userData.computer_name ? `
+                                <div class="info-item">
+                                    <span class="info-label">PC:</span>
+                                    <span class="info-value">${userData.computer_name}</span>
+                                </div>
+                            ` : ''}
+                            <div class="admin-actions">
+                                <button onclick="toggleVerification('${username}')" class="admin-btn verify-btn">
+                                    ${isVerified ? 'Снять верификацию' : 'Верифицировать'}
+                                </button>
+                                <button onclick="deleteUser('${username}')" class="admin-btn delete-btn">
+                                    Удалить
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    searchResults.appendChild(userCard);
+                }
+            });
+
+            if (!searchResults.children.length) {
+                searchResults.innerHTML = '<div class="empty-state">Пользователи не найдены</div>';
+            }
+        }
+
+        // Обработчики событий для поиска
+        document.getElementById('userSearch')?.addEventListener('input', searchUsers);
+        document.getElementById('filterVerified')?.addEventListener('change', searchUsers);
+        document.getElementById('filterUnverified')?.addEventListener('change', searchUsers);
     </script>
 </body>
-</html> 
+</html>

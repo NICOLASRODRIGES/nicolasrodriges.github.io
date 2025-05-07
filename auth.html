@@ -166,7 +166,7 @@
             <div class="col-md-8">
                 <div class="card fade-in" style="animation-delay: 0.2s">
                     <div class="card-body">
-                        <h1 class="main-title">Управление пользователями</h1>
+                        <h1 class="main-title">Управление верификации</h1>
                         <div id="error" class="alert alert-danger" style="display: none;"></div>
                         <div id="success" class="alert alert-success" style="display: none;"></div>
 
@@ -176,12 +176,12 @@
                                 <label for="username" class="form-label">Имя пользователя</label>
                                 <input type="text" class="form-control" id="username" required>
                             </div>
-                            <button type="submit" class="btn btn-primary">Авторизовать пользователя</button>
+                            <button type="submit" class="btn btn-primary">Верифицировать пользователя</button>
                         </form>
 
                         <!-- Список пользователей -->
                         <div class="mt-4">
-                            <h3 class="main-title h4">Авторизованные пользователи</h3>
+                            <h3 class="main-title h4">Верифицированные пользователи</h3>
                             <div id="usersList" class="list-group">
                                 <!-- Список пользователей будет добавлен здесь -->
                             </div>
@@ -198,6 +198,11 @@
             API_URL: 'https://api.jsonbin.io/v3/b/681a874e8960c979a594a392',
             API_KEY: '$2a$10$IaFLGgfXEd2.sFf7io7AHOQDzyNuZ38KACKqLlI3RkVFDyJXYC662'
         };
+
+        // Функция для проверки авторизации пользователя
+        function isUserAuthorized(username, data) {
+            return data.authorizedUsers && data.authorizedUsers.includes(username);
+        }
 
         // Функция для отображения сообщения об успехе
         function showSuccess(message) {
@@ -226,41 +231,67 @@
                     headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
                 });
                 const data = await response.json();
-                const allUsers = new Set();
                 const usersList = document.getElementById('usersList');
                 usersList.innerHTML = '';
 
-                // Собираем всех пользователей из разных мест в базе
-                if (data.record.users) {
-                    Object.entries(data.record.users).forEach(([username, userData]) => {
-                        if (userData.authorized) {
-                            allUsers.add(username);
-                        }
-                    });
-                }
+                // Получаем список авторизованных пользователей
+                const authorizedUsers = data.record.authorizedUsers || [];
 
-                // Проверяем основную таблицу на наличие пользователей с authorized: true
-                Object.entries(data.record).forEach(([key, value]) => {
-                    if (value && typeof value === 'object' && value.authorized === true) {
-                        allUsers.add(key);
-                    }
-                });
-
-                // Отображаем всех найденных пользователей
-                allUsers.forEach(username => {
+                // Отображаем всех авторизованных пользователей
+                authorizedUsers.forEach(username => {
                     const userItem = document.createElement('div');
                     userItem.className = 'list-group-item d-flex justify-content-between align-items-center';
                     userItem.innerHTML = `
                         <span>${username}</span>
                         <div class="user-controls">
-                            <span class="status-badge authorized">Авторизован</span>
+                            <button onclick="deauthorizeUser('${username}')" class="btn btn-danger btn-sm">
+                                Снять верификацию
+                            </button>
                         </div>
                     `;
                     usersList.appendChild(userItem);
                 });
+
+                if (authorizedUsers.length === 0) {
+                    usersList.innerHTML = '<div class="list-group-item text-center">Нет верифицированных пользователей</div>';
+                }
             } catch (error) {
                 console.error('Ошибка при обновлении списка:', error);
                 showError('Ошибка при загрузке списка пользователей');
+            }
+        }
+
+        // Функция снятия авторизации пользователя
+        async function deauthorizeUser(username) {
+            try {
+                const response = await fetch(window.API_CONFIG.API_URL, {
+                    headers: { 'X-Master-Key': window.API_CONFIG.API_KEY }
+                });
+                const data = await response.json();
+                
+                // Удаляем пользователя из списка авторизованных
+                const authorizedUsers = data.record.authorizedUsers || [];
+                const updatedUsers = authorizedUsers.filter(user => user !== username);
+                
+                const updatedData = {
+                    ...data.record,
+                    authorizedUsers: updatedUsers
+                };
+
+                await fetch(window.API_CONFIG.API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': window.API_CONFIG.API_KEY
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+
+                showSuccess('Верификация пользователя успешно снята');
+                updateUsersList();
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showError('Произошла ошибка при снятии верификации');
             }
         }
 
@@ -280,21 +311,18 @@
                 const data = await response.json();
                 
                 // Проверяем, не авторизован ли уже пользователь
-                const isAuthorizedInUsers = data.record.users?.[username]?.authorized;
-                const isAuthorizedInMain = data.record[username]?.authorized;
-                
-                if (isAuthorizedInUsers || isAuthorizedInMain) {
-                    showError('Этот пользователь уже авторизован');
+                if (isUserAuthorized(username, data.record)) {
+                    showError('Этот пользователь уже верифицирован');
                     return;
                 }
 
-                // Добавляем нового пользователя в основную таблицу
+                // Добавляем пользователя в список авторизованных
+                const authorizedUsers = data.record.authorizedUsers || [];
+                authorizedUsers.push(username);
+
                 const updatedData = {
                     ...data.record,
-                    [username]: {
-                        authorized: true,
-                        authorizedAt: new Date().toISOString()
-                    }
+                    authorizedUsers: authorizedUsers
                 };
 
                 await fetch(window.API_CONFIG.API_URL, {
@@ -307,11 +335,11 @@
                 });
 
                 document.getElementById('username').value = '';
-                showSuccess('Пользователь успешно авторизован');
+                showSuccess('Пользователь успешно верифицирован');
                 updateUsersList();
             } catch (error) {
                 console.error('Ошибка:', error);
-                showError('Произошла ошибка при авторизации пользователя');
+                showError('Произошла ошибка при верификации пользователя');
             }
         }
 

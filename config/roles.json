@@ -1,0 +1,88 @@
+{
+    "roles": {
+        "superadmin": {
+            "level": 100,
+            "description": "Полный доступ ко всем функциям",
+            "permissions": [
+                "manage_users",
+                "verify_users",
+                "delete_users",
+                "manage_roles",
+                "view_logs",
+                "manage_settings",
+                "manage_api",
+                "view_statistics",
+                "manage_registration",
+                "approve_users",
+                "manage_email_templates",
+                "view_security_logs",
+                "manage_security"
+            ]
+        },
+        "admin": {
+            "level": 80,
+            "description": "Управление пользователями и настройками",
+            "permissions": [
+                "manage_users",
+                "verify_users",
+                "view_logs",
+                "view_statistics",
+                "approve_users",
+                "view_security_logs"
+            ]
+        },
+        "moderator": {
+            "level": 60,
+            "description": "Модерация пользователей",
+            "permissions": [
+                "verify_users",
+                "view_statistics",
+                "view_logs"
+            ]
+        },
+        "viewer": {
+            "level": 40,
+            "description": "Просмотр информации",
+            "permissions": [
+                "view_statistics"
+            ]
+        },
+        "registered": {
+            "level": 20,
+            "description": "Зарегистрированный пользователь",
+            "permissions": [
+                "view_profile",
+                "edit_profile",
+                "change_password"
+            ]
+        },
+        "unverified": {
+            "level": 10,
+            "description": "Неподтвержденный пользователь",
+            "permissions": [
+                "verify_email",
+                "resend_verification"
+            ]
+        }
+    },
+    "permissions": {
+        "manage_users": "Управление пользователями",
+        "verify_users": "Верификация пользователей",
+        "delete_users": "Удаление пользователей",
+        "manage_roles": "Управление ролями",
+        "view_logs": "Просмотр логов",
+        "manage_settings": "Управление настройками",
+        "manage_api": "Управление API",
+        "view_statistics": "Просмотр статистики",
+        "manage_registration": "Управление регистрацией",
+        "approve_users": "Подтверждение пользователей",
+        "manage_email_templates": "Управление шаблонами email",
+        "view_security_logs": "Просмотр логов безопасности",
+        "manage_security": "Управление безопасностью",
+        "view_profile": "Просмотр профиля",
+        "edit_profile": "Редактирование профиля",
+        "change_password": "Смена пароля",
+        "verify_email": "Подтверждение email",
+        "resend_verification": "Повторная отправка подтверждения"
+    }
+} 
